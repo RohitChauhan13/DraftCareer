@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  resumes       Resume[]
+
+  @@map("users")
+}
+
+model OtpVerification {
+  id           String   @id @default(cuid())
+  email        String
+  otpHash      String   @map("otp_hash")
+  purpose      String   @default("email_verification")
+  attempts     Int      @default(0)
+  resendCount  Int      @default(0) @map("resend_count")
+  expiresAt    DateTime @map("expires_at")
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([email, purpose])
+  @@map("otp_verifications")
+}
+
+model Resume {
+  id         String          @id @default(cuid())
+  userId     String          @map("user_id")
+  title      String
+  templateId String          @default("modern") @map("template_id")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections   ResumeSection[]
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+model ResumeSection {
+  id          String   @id @default(cuid())
+  resumeId    String   @map("resume_id")
+  sectionType String   @map("section_type")
+  contentJson Json     @map("content_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, sectionType])
+  @@map("resume_sections")
+}

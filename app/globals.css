@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+  --muted: 210 22% 92%;
+  --muted-foreground: 215 16% 44%;
+  --border: 214 21% 86%;
+  --primary: 160 84% 28%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 36 96% 56%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 51%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.word-loader-card {
+  --loader-bg-color: #111827;
+  background: var(--loader-bg-color);
+  padding: 1rem 1.35rem;
+  border-radius: 1rem;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.18);
+}
+
+.word-loader {
+  color: rgb(203, 213, 225);
+  font-weight: 600;
+  font-size: 22px;
+  box-sizing: content-box;
+  height: 40px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.word-loader-words {
+  overflow: hidden;
+  position: relative;
+  height: 40px;
+}
+
+.word-loader-words::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    var(--loader-bg-color) 10%,
+    transparent 30%,
+    transparent 70%,
+    var(--loader-bg-color) 90%
+  );
+  z-index: 20;
+}
+
+.word-loader-word {
+  display: block;
+  height: 100%;
+  padding-left: 7px;
+  color: #34d399;
+  animation: word-loader-spin 4s infinite;
+}
+
+@keyframes word-loader-spin {
+  10% {
+    transform: translateY(-102%);
+  }
+
+  25% {
+    transform: translateY(-100%);
+  }
+
+  35% {
+    transform: translateY(-202%);
+  }
+
+  50% {
+    transform: translateY(-200%);
+  }
+
+  60% {
+    transform: translateY(-302%);
+  }
+
+  75% {
+    transform: translateY(-300%);
+  }
+
+  85% {
+    transform: translateY(-402%);
+  }
+
+  100% {
+    transform: translateY(-400%);
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
