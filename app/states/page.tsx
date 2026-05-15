@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Activity, CalendarDays, Eye, FileText, Mail, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 import { MainNav } from "@/components/main-nav";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { UserBlockButton } from "@/components/user-block-button";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 import { prisma } from "@/lib/prisma";
@@ -21,6 +22,7 @@ type UserStatsRow = {
   email: string;
   role: string;
   email_verified: boolean;
+  is_blocked: boolean;
   last_seen_at: Date | null;
   created_at: Date;
   updated_at: Date;
@@ -43,6 +45,7 @@ export default async function StatesPage() {
       u.email,
       u.role,
       u.email_verified,
+      u.is_blocked,
       u.last_seen_at,
       u.created_at,
       u.updated_at,
@@ -102,6 +105,7 @@ export default async function StatesPage() {
                     <th className="px-4 py-3 font-bold">Resumes</th>
                     <th className="px-4 py-3 font-bold">Public</th>
                     <th className="px-4 py-3 font-bold">Private</th>
+                    <th className="px-4 py-3 font-bold">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -127,6 +131,7 @@ export default async function StatesPage() {
                         <td className="px-4 py-4">
                           <div className="flex flex-wrap gap-2">
                             <Badge>{row.role}</Badge>
+                            {row.is_blocked && <Badge tone="danger">Blocked</Badge>}
                             <Badge tone={row.email_verified ? "success" : "muted"}>{row.email_verified ? "Verified" : "Unverified"}</Badge>
                           </div>
                         </td>
@@ -143,6 +148,14 @@ export default async function StatesPage() {
                         <td className="px-4 py-4 font-bold">{resumeCount}</td>
                         <td className="px-4 py-4">{Number(row.public_resume_count)}</td>
                         <td className="px-4 py-4">{Number(row.private_resume_count)}</td>
+                        <td className="px-4 py-4">
+                          <UserBlockButton
+                            disabled={row.id === user.id}
+                            initialBlocked={row.is_blocked}
+                            userId={row.id}
+                            userName={row.name}
+                          />
+                        </td>
                       </tr>
                     );
                   })}
@@ -168,11 +181,12 @@ function MetricCard({ icon: Icon, label, value }: { icon: typeof UserRound; labe
   );
 }
 
-function Badge({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "success" | "muted" }) {
+function Badge({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "success" | "muted" | "danger" }) {
   const classes = {
     default: "bg-primary/10 text-primary",
     success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-    muted: "bg-muted text-muted-foreground"
+    muted: "bg-muted text-muted-foreground",
+    danger: "bg-red-500/10 text-red-700 dark:text-red-300"
   };
   return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${classes[tone]}`}>{children}</span>;
 }

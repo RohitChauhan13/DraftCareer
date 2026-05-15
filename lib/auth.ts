@@ -60,14 +60,17 @@ export async function getCurrentUser() {
     name: string;
     email: string;
     role: string;
+    isBlocked: boolean;
     emailVerified: boolean;
     createdAt: Date;
   }>>`
-    SELECT id, name, email, role, email_verified AS "emailVerified", created_at AS "createdAt"
+    SELECT id, name, email, role, is_blocked AS "isBlocked", email_verified AS "emailVerified", created_at AS "createdAt"
     FROM users
     WHERE id = ${userId}
     LIMIT 1
   `;
 
-  return users[0] ?? null;
+  const user = users[0] ?? null;
+  if (user?.isBlocked) return null;
+  return user;
 }

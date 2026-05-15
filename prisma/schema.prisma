@@ -14,6 +14,7 @@ model User {
   passwordHash  String   @map("password_hash")
   role          String   @default("user")
   emailVerified Boolean  @default(false) @map("email_verified")
+  isBlocked     Boolean  @default(false) @map("is_blocked")
   lastSeenAt    DateTime? @map("last_seen_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")

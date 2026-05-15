@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -26,9 +28,15 @@ export function ConfirmDialog({
   onConfirm,
   onCancel
 }: ConfirmDialogProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!open) return null;
 
-  return (
+  const dialog = (
     <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
       <div className="w-full max-w-md rounded-lg border border-border bg-surface text-surface-foreground shadow-soft">
         <div className="flex items-start justify-between gap-4 border-b border-border p-5">
@@ -54,4 +62,6 @@ export function ConfirmDialog({
       </div>
     </div>
   );
+
+  return mounted ? createPortal(dialog, document.body) : dialog;
 }
