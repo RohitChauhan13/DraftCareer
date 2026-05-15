@@ -10,14 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { emailSchema, passwordSchema, signupSchema } from "@/lib/validations";
+import { MainNav } from "@/components/main-nav";
 import { WordLoader } from "@/components/page-loader";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 type Mode = "login" | "signup";
 type View = Mode | "forgot";
 type Errors = Partial<Record<"name" | "email" | "password" | "otp", string>>;
 
-export function AuthForm({ mode }: { mode: Mode }) {
+export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonation?: boolean }) {
   const router = useRouter();
   const [view, setView] = useState<View>(mode);
   const [loading, setLoading] = useState(false);
@@ -182,12 +182,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           />
         </div>
       )}
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link className="text-xl font-black tracking-normal text-foreground" href="/">
-          DraftCareer
-        </Link>
-        <ThemeToggle />
-      </header>
+      <MainNav user={null} showDonation={showDonation} />
       <section className="grid min-h-[calc(100vh-72px)] place-items-center px-4 pb-8 sm:px-6">
       <Card className="w-full max-w-md overflow-hidden">
         <CardHeader>

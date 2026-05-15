@@ -1,19 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, EyeOff, Home } from "lucide-react";
+import { ArrowLeft, EyeOff } from "lucide-react";
+import { MainNav } from "@/components/main-nav";
 
 export function ResumeUnavailable() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-surface/90 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-8">
-          <Link className="text-xl font-black sm:text-2xl" href="/">
-            DraftCareer
-          </Link>
-          <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/">
-            <Home size={16} /> Home
-          </Link>
-        </nav>
-      </header>
+      <MainNav user={null} />
       <section className="grid min-h-[calc(100vh-73px)] place-items-center px-4 py-12">
         <div className="w-full max-w-2xl rounded-2xl border border-border bg-surface p-6 text-center shadow-[0_26px_90px_rgba(15,23,42,0.16)] dark:shadow-[0_26px_90px_rgba(0,0,0,0.36)] sm:p-10">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-muted text-primary">

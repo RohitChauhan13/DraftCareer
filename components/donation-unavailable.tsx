@@ -1,19 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, HeartOff, Home, Sparkles } from "lucide-react";
+import { ArrowLeft, HeartOff, Sparkles } from "lucide-react";
+import { MainNav } from "@/components/main-nav";
 
 export function DonationUnavailable() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <header className="border-b border-border bg-surface/90 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-8">
-          <Link className="text-xl font-black tracking-normal sm:text-2xl" href="/">
-            DraftCareer
-          </Link>
-          <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/">
-            <Home size={16} /> Home
-          </Link>
-        </nav>
-      </header>
+      <MainNav user={null} showDonation={false} />
 
       <section className="relative grid min-h-[calc(100vh-73px)] place-items-center px-4 py-12">
         <div className="absolute right-8 top-24 h-40 w-40 rounded-full border border-accent/25 bg-accent/10 blur-xl" />

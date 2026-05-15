@@ -1,16 +1,17 @@
 import { redirect } from "next/navigation";
 import { FileText } from "lucide-react";
 import { DashboardActions } from "@/components/dashboard-actions";
+import { MainNav } from "@/components/main-nav";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { LogoutButton } from "@/components/logout-button";
 import { NavActionLink } from "@/components/nav-action-link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { getCurrentUser } from "@/lib/auth";
+import { getDonationSettings } from "@/lib/donation";
 import { prisma } from "@/lib/prisma";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  const donationSettings = await getDonationSettings();
 
   const resumes = await prisma.resume.findMany({
     where: { userId: user.id },
@@ -20,19 +21,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <div>
-            <p className="text-sm text-muted-foreground">DraftCareer</p>
-            <h1 className="text-2xl font-semibold">Welcome, {user.name}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <NavActionLink href="/account">My Account</NavActionLink>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <MainNav user={{ name: user.name, email: user.email }} showDonation={donationSettings.isPageVisible} />
 
       <section className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">

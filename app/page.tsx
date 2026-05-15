@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, FileText, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { MainNav } from "@/components/main-nav";
 
 const highlights = [
   "ATS-friendly templates",
@@ -37,27 +37,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <header className="relative z-10 border-b border-border bg-surface/90 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
-          <Link className="flex min-w-0 items-center gap-2 text-xl font-black tracking-tight text-foreground sm:text-2xl" href="/">
-            DraftCareer
-          </Link>
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <Link className="hidden rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted md:inline-flex" href="#about">
-              About
-            </Link>
-            {donationSettings.isPageVisible && (
-              <Link className="hidden rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted md:inline-flex" href="/donation">
-                Donate us
-              </Link>
-            )}
-            <ThemeToggle />
-            <Link className="rounded-full bg-muted px-4 py-2.5 text-sm font-extrabold text-foreground shadow-sm transition hover:bg-border sm:px-7 sm:py-3" href={accountHref}>
-              {user ? "My Account" : "Login"}
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <MainNav user={user ? { name: user.name, email: user.email } : null} showDonation={donationSettings.isPageVisible} />
 
       <section className="relative">
         <div className="absolute inset-y-0 right-0 hidden w-[46%] bg-muted lg:block" />

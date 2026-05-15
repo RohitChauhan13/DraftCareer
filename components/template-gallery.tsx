@@ -9,11 +9,24 @@ import { ResumePreview } from "@/templates/resume-preview";
 import { resumeTemplates, resumeThemes } from "@/templates/resume-options";
 import type { ResumeData, TemplateId, ThemeId } from "@/types/resume";
 import { emptyResumeData, sectionsFromResumeData } from "@/utils/resume";
+import { MainNav } from "@/components/main-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const draftKey = "resume-builder-draft";
 
-export function TemplateGallery({ userName, userEmail, initialData, resumeId }: { userName: string; userEmail: string; initialData?: ResumeData; resumeId?: string }) {
+export function TemplateGallery({
+  userName,
+  userEmail,
+  initialData,
+  resumeId,
+  showDonation = true
+}: {
+  userName: string;
+  userEmail: string;
+  initialData?: ResumeData;
+  resumeId?: string;
+  showDonation?: boolean;
+}) {
   const router = useRouter();
   const [themeId, setThemeId] = useState<ThemeId>(initialData?.themeId ?? "red");
   const [draft, setDraft] = useState<ResumeData | null>(initialData ?? null);
@@ -109,7 +122,8 @@ export function TemplateGallery({ userName, userEmail, initialData, resumeId }: 
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
+      <MainNav user={{ name: userName, email: userEmail }} showDonation={showDonation} />
+      <header className="sticky top-[65px] z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4">
           <div className="flex items-center gap-3">
             <Link className="grid h-10 w-10 place-items-center rounded-md border border-border bg-surface" href={resumeId ? `/builder/${resumeId}` : "/dashboard"} title="Back">

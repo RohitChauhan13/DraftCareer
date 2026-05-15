@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, BadgeIndianRupee, CalendarDays, Mail, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
+import { BadgeIndianRupee, CalendarDays, Mail, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
 import { DonationSettingsForm } from "@/components/donation-settings-form";
+import { MainNav } from "@/components/main-nav";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
@@ -13,21 +13,12 @@ export default async function AccountPage() {
   if (!user) redirect("/login");
 
   const isAdmin = user.role === "admin";
-  const donationSettings = isAdmin ? await getDonationSettings() : null;
+  const publicDonationSettings = await getDonationSettings();
+  const donationSettings = isAdmin ? publicDonationSettings : null;
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <div>
-            <p className="text-sm text-muted-foreground">DraftCareer</p>
-            <h1 className="text-2xl font-semibold">My Account</h1>
-          </div>
-          <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/dashboard">
-            <ArrowLeft size={16} /> Dashboard
-          </Link>
-        </div>
-      </header>
+      <MainNav user={{ name: user.name, email: user.email }} showDonation={publicDonationSettings.isPageVisible} />
 
       <section className="mx-auto grid max-w-5xl gap-5 px-4 py-8">
         <Card>

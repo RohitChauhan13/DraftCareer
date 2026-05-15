@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
-import Link from "next/link";
-import { ArrowLeft, BadgeIndianRupee, HeartHandshake, QrCode, ShieldCheck, Sparkles } from "lucide-react";
+import { BadgeIndianRupee, HeartHandshake, QrCode, ShieldCheck, Sparkles } from "lucide-react";
 import { DonationUnavailable } from "@/components/donation-unavailable";
+import { MainNav } from "@/components/main-nav";
+import { getCurrentUser } from "@/lib/auth";
 import { createUpiUrl, getDonationSettings } from "@/lib/donation";
 
 export const dynamic = "force-dynamic";
@@ -9,21 +10,13 @@ export const dynamic = "force-dynamic";
 const presetAmounts = [49, 99, 199];
 
 export default async function DonationPage() {
+  const user = await getCurrentUser();
   const settings = await getDonationSettings();
   if (!settings.isPageVisible) return <DonationUnavailable />;
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <header className="border-b border-border bg-surface/90 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
-          <Link className="flex min-w-0 items-center gap-2 text-xl font-black tracking-normal sm:text-2xl" href="/">
-            DraftCareer
-          </Link>
-          <Link className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 text-sm font-semibold hover:bg-muted sm:px-4" href="/">
-            <ArrowLeft size={16} /> Home
-          </Link>
-        </nav>
-      </header>
+      <MainNav user={user ? { name: user.name, email: user.email } : null} showDonation={settings.isPageVisible} />
 
       <section className="relative">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />

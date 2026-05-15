@@ -13,6 +13,7 @@ import { sectionsFromResumeData } from "@/utils/resume";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input, Textarea } from "@/components/ui/input";
+import { MainNav } from "@/components/main-nav";
 import { WordLoader } from "@/components/page-loader";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { ResumeShareInfo } from "@/lib/resume-share";
@@ -27,7 +28,19 @@ const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultC
   { key: "meta", label: "Technology, date, links", defaultColor: "#6b7280" }
 ];
 
-export function ResumeBuilder({ initialData, resumeId, initialShare }: { initialData: ResumeData; resumeId?: string; initialShare?: ResumeShareInfo }) {
+export function ResumeBuilder({
+  initialData,
+  resumeId,
+  initialShare,
+  user,
+  showDonation = true
+}: {
+  initialData: ResumeData;
+  resumeId?: string;
+  initialShare?: ResumeShareInfo;
+  user?: { name: string; email: string };
+  showDonation?: boolean;
+}) {
   const router = useRouter();
   const pdfRef = useRef<HTMLDivElement | null>(null);
   const [data, setData] = useState<ResumeData>(initialData);
@@ -217,7 +230,8 @@ export function ResumeBuilder({ initialData, resumeId, initialShare }: { initial
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur">
+      {user && <MainNav user={user} showDonation={showDonation} />}
+      <header className="sticky top-[65px] z-20 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
             <Link className="grid h-10 w-10 place-items-center rounded-md border border-border bg-surface" href="/dashboard" title="Back">

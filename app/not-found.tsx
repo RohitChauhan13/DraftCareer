@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, FileQuestion, Home, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, FileQuestion, LayoutDashboard } from "lucide-react";
+import { MainNav } from "@/components/main-nav";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function NotFoundPage() {
@@ -7,16 +8,7 @@ export default async function NotFoundPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <header className="border-b border-border bg-surface/90 backdrop-blur">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-8">
-          <Link className="text-xl font-black tracking-normal sm:text-2xl" href="/">
-            DraftCareer
-          </Link>
-          <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/">
-            <Home size={16} /> Home
-          </Link>
-        </nav>
-      </header>
+      <MainNav user={user ? { name: user.name, email: user.email } : null} />
 
       <section className="relative grid min-h-[calc(100vh-73px)] place-items-center px-4 py-12">
         <div className="absolute left-1/2 top-16 h-52 w-52 -translate-x-1/2 rounded-full border border-primary/20 bg-primary/10 blur-2xl" />
