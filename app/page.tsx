@@ -29,6 +29,28 @@ const steps = [
   }
 ];
 
+const homeStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "DraftCareer",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: "https://draftcareer.vercel.app",
+  description: "DraftCareer is a free online resume builder for creating ATS-friendly resumes with professional templates, live preview, saved resume history, and PDF export.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD"
+  },
+  featureList: [
+    "Free resume builder",
+    "ATS-friendly resume templates",
+    "Live resume preview",
+    "PDF resume export",
+    "Saved resume history"
+  ]
+};
+
 export default async function HomePage() {
   const user = await getCurrentUser();
   const donationSettings = await getDonationSettings();
@@ -37,6 +59,10 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
+      />
       <MainNav user={user ? { name: user.name, email: user.email } : null} showDonation={donationSettings.isPageVisible} />
 
       <section className="relative">
@@ -45,10 +71,10 @@ export default async function HomePage() {
           <div className="relative z-10 max-w-2xl">
             <p className="text-lg font-extrabold text-primary sm:text-2xl">Fast. Easy. Effective.</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-black leading-[1.08] tracking-normal text-foreground sm:mt-6 sm:text-6xl lg:text-7xl">
-              The resume maker built for modern careers.
+              Free resume builder for modern careers.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:mt-7 sm:text-xl sm:leading-8">
-              Build a new resume from scratch or improve an existing one with focused tools, professional templates, and a workspace that feels effortless.
+              Create an ATS-friendly resume online with professional templates, live preview, saved resume history, and a polished PDF export.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:gap-4">

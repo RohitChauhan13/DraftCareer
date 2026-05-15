@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://draft-career.vercel.app";
 const themeScript = `
   (() => {
     try {
@@ -20,15 +21,69 @@ const themeScript = `
 `;
 
 export const metadata: Metadata = {
-  title: "DraftCareer",
-  description: "Create, preview, save, and export ATS-friendly resumes with DraftCareer.",
+  metadataBase: new URL(siteUrl),
+  applicationName: "DraftCareer",
+  title: {
+    default: "DraftCareer - Free Resume Builder and ATS Resume Maker",
+    template: "%s | DraftCareer"
+  },
+  description: "Build a professional resume for free with DraftCareer. Choose ATS-friendly resume templates, preview instantly, save your resume, and export a polished PDF.",
+  keywords: [
+    "free resume builder",
+    "resume maker",
+    "ATS resume builder",
+    "resume templates",
+    "free CV maker",
+    "online resume builder",
+    "professional resume builder",
+    "download resume PDF"
+  ],
+  authors: [{ name: "DraftCareer" }],
+  creator: "DraftCareer",
+  publisher: "DraftCareer",
+  alternates: {
+    canonical: "/"
+  },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" }
     ],
     shortcut: "/icon.svg",
     apple: "/icon.svg"
-  }
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "DraftCareer",
+    title: "DraftCareer - Free Resume Builder and ATS Resume Maker",
+    description: "Create an ATS-friendly resume online with free templates, live preview, saved resume history, and PDF export.",
+    images: [
+      {
+        url: "/icon.svg",
+        width: 64,
+        height: 64,
+        alt: "DraftCareer logo"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary",
+    title: "DraftCareer - Free Resume Builder",
+    description: "Build an ATS-friendly resume online and export a polished PDF.",
+    images: ["/icon.svg"]
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1
+    }
+  },
+  category: "resume builder"
 };
 
 export const viewport: Viewport = {

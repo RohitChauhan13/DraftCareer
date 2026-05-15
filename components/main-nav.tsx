@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeIndianRupee, FileText, Home, Info, LayoutDashboard, LayoutTemplate, LogIn, Menu, UserRound, X } from "lucide-react";
+import { BadgeIndianRupee, FileText, Home, LayoutDashboard, LayoutTemplate, LogIn, Menu, UserRound, X } from "lucide-react";
 import { LogoutButton } from "@/components/logout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -17,7 +17,6 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
   const protectedHref = isLoggedIn ? undefined : "/login";
   const navItems = [
     { label: "Home", href: "/", icon: Home },
-    { label: "About", href: "/#about", icon: Info },
     { label: "Templates", href: protectedHref ?? "/builder/new", icon: LayoutTemplate },
     ...(showDonation ? [{ label: "Donate us", href: "/donation", icon: BadgeIndianRupee }] : []),
     { label: "Dashboard", href: protectedHref ?? "/dashboard", icon: LayoutDashboard }
