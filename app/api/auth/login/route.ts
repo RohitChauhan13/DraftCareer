@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: (user as { role?: string }).role ?? "user",
         emailVerified: user.emailVerified
       }
     });

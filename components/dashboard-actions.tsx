@@ -34,10 +34,10 @@ export function DashboardActions({ resume }: { resume: ResumeRecord }) {
         })
       });
       if (!response.ok) {
-        toast.error("Unable to duplicate resume");
+        toast.error("Duplicate failed");
         return;
       }
-      toast.success("Resume duplicated");
+      toast.success("Duplicated");
       router.refresh();
     } finally {
       setAction(null);
@@ -49,10 +49,10 @@ export function DashboardActions({ resume }: { resume: ResumeRecord }) {
     try {
       const response = await fetch(`/api/resumes/${resume.id}`, { method: "DELETE" });
       if (!response.ok) {
-        toast.error("Unable to delete resume");
+        toast.error("Delete failed");
         return;
       }
-      toast.success("Resume deleted");
+      toast.success("Deleted");
       setConfirmDelete(false);
       router.refresh();
     } finally {

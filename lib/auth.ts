@@ -55,14 +55,19 @@ export async function getCurrentUser() {
   const userId = await getSessionUserId();
   if (!userId) return null;
 
-  return prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      emailVerified: true,
-      createdAt: true
-    }
-  });
+  const users = await prisma.$queryRaw<Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    emailVerified: boolean;
+    createdAt: Date;
+  }>>`
+    SELECT id, name, email, role, email_verified AS "emailVerified", created_at AS "createdAt"
+    FROM users
+    WHERE id = ${userId}
+    LIMIT 1
+  `;
+
+  return users[0] ?? null;
 }

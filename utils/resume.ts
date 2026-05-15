@@ -4,6 +4,7 @@ export const emptyResumeData: ResumeData = {
   title: "Untitled Resume",
   templateId: "modern",
   themeId: "red",
+  textColors: {},
   personal: {
     fullName: "",
     email: "",
@@ -25,7 +26,7 @@ export const emptyResumeData: ResumeData = {
 export function sectionsFromResumeData(data: ResumeData) {
   return Object.entries({
     personal: data.personal,
-    metadata: { themeId: data.themeId },
+    metadata: { themeId: data.themeId, textColors: data.textColors },
     summary: data.summary,
     skills: data.skills,
     education: data.education,
@@ -50,6 +51,7 @@ export function resumeDataFromSections(input: {
       ? (input.templateId as ResumeData["templateId"])
       : "modern",
     themeId: normalizeThemeId(byType.get("metadata")),
+    textColors: normalizeTextColors(byType.get("metadata")),
     personal: { ...emptyResumeData.personal, ...(byType.get("personal") as object | undefined) },
     summary: typeof byType.get("summary") === "string" ? (byType.get("summary") as string) : "",
     skills: Array.isArray(byType.get("skills")) ? (byType.get("skills") as string[]) : [],
@@ -68,9 +70,25 @@ function normalizeThemeId(value: unknown): ResumeData["themeId"] {
     ? (value as { themeId?: unknown }).themeId
     : undefined;
 
-  return typeof themeId === "string" && ["white", "charcoal", "taupe", "navy", "blue", "teal", "green", "orange", "red"].includes(themeId)
+  return typeof themeId === "string" && ["purple", "charcoal", "taupe", "navy", "blue", "teal", "green", "orange", "red"].includes(themeId)
     ? (themeId as ResumeData["themeId"])
     : "red";
+}
+
+function normalizeTextColors(value: unknown): ResumeData["textColors"] {
+  const colors = value && typeof value === "object" && "textColors" in value
+    ? (value as { textColors?: unknown }).textColors
+    : undefined;
+  if (!colors || typeof colors !== "object") return {};
+
+  const output: ResumeData["textColors"] = {};
+  for (const key of ["name", "description", "subtitle", "meta"] as const) {
+    const color = (colors as Record<string, unknown>)[key];
+    if (typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)) {
+      output[key] = color;
+    }
+  }
+  return output;
 }
 
 function normalizeExperience(value: unknown): ResumeData["experience"] {

@@ -4,30 +4,41 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Download, GripVertical, LayoutTemplate, Minus, Plus, Save, X } from "lucide-react";
+import { ArrowLeft, Check, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
-import type { ResumeData } from "@/types/resume";
+import type { ResumeData, ResumeTextColorKey } from "@/types/resume";
 import { resumeThemes } from "@/templates/resume-options";
 import { sectionsFromResumeData } from "@/utils/resume";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input, Textarea } from "@/components/ui/input";
 import { WordLoader } from "@/components/page-loader";
+import { ThemeToggle } from "@/components/theme-toggle";
+import type { ResumeShareInfo } from "@/lib/resume-share";
 
 const skillSuggestions = ["React", "JavaScript", "React-Native", "Next.js", "TypeScript", "Node.js", "Basic HTML", "Angular", "PostgreSQL", "MySQL", "MongoDB", "Prisma", "Docker", "AWS", "Git"];
 const requiredPersonalFields = ["fullName", "email", "phone", "location"] as const;
 const draftKey = "resume-builder-draft";
+const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultColor: string }> = [
+  { key: "name", label: "Name", defaultColor: "#111827" },
+  { key: "description", label: "Description", defaultColor: "#374151" },
+  { key: "subtitle", label: "Sub titles", defaultColor: "#111827" },
+  { key: "meta", label: "Technology, date, links", defaultColor: "#6b7280" }
+];
 
-export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeData; resumeId?: string }) {
+export function ResumeBuilder({ initialData, resumeId, initialShare }: { initialData: ResumeData; resumeId?: string; initialShare?: ResumeShareInfo }) {
   const router = useRouter();
   const pdfRef = useRef<HTMLDivElement | null>(null);
   const [data, setData] = useState<ResumeData>(initialData);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [confirmDownload, setConfirmDownload] = useState(false);
+  const [confirmShare, setConfirmShare] = useState(false);
   const [zoom, setZoom] = useState(0.78);
   const [draggingSkill, setDraggingSkill] = useState<string | null>(null);
+  const [share, setShare] = useState<ResumeShareInfo>(initialShare ?? { isPublic: false, shareSlug: null });
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     if (resumeId) return;
@@ -35,7 +46,7 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
     if (!stored) return;
     try {
       const draft = JSON.parse(stored) as ResumeData;
-      setData({ ...draft, templateId: initialData.templateId, themeId: initialData.themeId });
+      setData({ ...draft, textColors: draft.textColors ?? {}, templateId: initialData.templateId, themeId: initialData.themeId });
       sessionStorage.removeItem(draftKey);
     } catch {
       sessionStorage.removeItem(draftKey);
@@ -62,7 +73,7 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
     const missing = getMissingPersonalFields();
     if (missing.length === 0) return true;
 
-    toast.warning(`Please complete personal details: ${missing.map(formatPersonalField).join(", ")}.`);
+    toast.warning(`Missing: ${missing.map(formatPersonalField).join(", ")}`);
     return false;
   }
 
@@ -71,11 +82,11 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
     setSaving(true);
     try {
       const result = await persistResume();
-      toast.success("Resume saved");
+      toast.success("Saved");
       if (!resumeId) router.replace(`/builder/${result.resume.id}`);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to save resume");
+      toast.error(error instanceof Error ? error.message : "Save failed");
     } finally {
       setSaving(false);
     }
@@ -103,7 +114,7 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
       if (!response.ok) throw new Error(result.error);
       router.push(`/builder/${resumeId}/templates`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to prepare template change");
+      toast.error(error instanceof Error ? error.message : "Template failed");
     } finally {
       setSaving(false);
     }
@@ -133,10 +144,10 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
         })
         .from(pdfRef.current)
         .save();
-      toast.success("PDF downloaded");
+      toast.success("Downloaded");
       setConfirmDownload(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to download PDF");
+      toast.error(error instanceof Error ? error.message : "Download failed");
     } finally {
       setExporting(false);
     }
@@ -163,6 +174,34 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
     return result;
   }
 
+  async function toggleShare() {
+    if (!resumeId || sharing) return;
+    setSharing(true);
+    try {
+      const response = await fetch(`/api/resumes/${resumeId}/share`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ isPublic: !share.isPublic })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setShare(result.share);
+      toast.success(result.share.isPublic ? "Public" : "Private");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Share failed");
+    } finally {
+      setSharing(false);
+      setConfirmShare(false);
+    }
+  }
+
+  async function copyShareLink() {
+    if (!share.shareSlug) return;
+    const url = `${window.location.origin}/r/${share.shareSlug}`;
+    await navigator.clipboard.writeText(url);
+    toast.success("Copied");
+  }
+
   function reorderSkill(targetSkill: string) {
     if (!draggingSkill || draggingSkill === targetSkill) return;
 
@@ -178,10 +217,10 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-20 border-b border-border bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link className="grid h-10 w-10 place-items-center rounded-md border border-border bg-white" href="/dashboard" title="Back">
+            <Link className="grid h-10 w-10 place-items-center rounded-md border border-border bg-surface" href="/dashboard" title="Back">
               <ArrowLeft size={18} />
             </Link>
             <div>
@@ -192,13 +231,24 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <ThemeToggle />
             <Button size="icon" variant="secondary" onClick={() => setZoom((value) => Math.max(0.55, value - 0.08))} title="Zoom out"><Minus size={16} /></Button>
             <Button size="icon" variant="secondary" onClick={() => setZoom((value) => Math.min(1, value + 0.08))} title="Zoom in"><Plus size={16} /></Button>
             <Button variant="secondary" onClick={save} loading={saving} loadingText="Saving"><Save size={16} /> Save</Button>
             {resumeId && (
-              <Button onClick={requestPdfDownload} loading={exporting} loadingText="Preparing PDF">
-                <Download size={16} /> PDF
-              </Button>
+              <>
+                <Button variant="secondary" onClick={() => setConfirmShare(true)} loading={sharing} loadingText="Sharing">
+                  {share.isPublic ? <EyeOff size={16} /> : <Eye size={16} />} {share.isPublic ? "Private" : "Public"}
+                </Button>
+                {share.shareSlug && (
+                  <Button size="icon" variant="secondary" onClick={copyShareLink} title="Copy public link">
+                    <Copy size={16} />
+                  </Button>
+                )}
+                <Button onClick={requestPdfDownload} loading={exporting} loadingText="Preparing PDF">
+                  <Download size={16} /> PDF
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -226,9 +276,26 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
         onConfirm={downloadPdf}
       />
 
+      <ConfirmDialog
+        cancelLabel="Cancel"
+        confirmLabel={share.isPublic ? "Make Private" : "Make Public"}
+        description={
+          share.isPublic
+            ? "Visitors will no longer be able to view this resume from the public link. The link slug stays reserved if you share it again later."
+            : "Anyone with the public link will be able to view this resume in read-only mode."
+        }
+        loading={sharing}
+        open={confirmShare}
+        title={share.isPublic ? "Make resume private?" : "Make resume public?"}
+        onCancel={() => {
+          if (!sharing) setConfirmShare(false);
+        }}
+        onConfirm={toggleShare}
+      />
+
       <div className="pointer-events-none fixed -left-[10000px] top-0 opacity-0" aria-hidden="true">
         <div ref={pdfRef}>
-          <ResumePreview data={data} zoom={1} compact />
+          <ResumePreview data={data} zoom={1} compact appearance="light" />
         </div>
       </div>
 
@@ -261,6 +328,40 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
             </Button>
           </Panel>
 
+          <Panel title="Text Colors">
+            <div className="grid gap-3">
+              {textColorOptions.map((option) => (
+                <ColorField
+                  defaultColor={option.defaultColor}
+                  key={option.key}
+                  label={option.label}
+                  value={data.textColors[option.key]}
+                  onChange={(color) => setData({
+                    ...data,
+                    textColors: {
+                      ...data.textColors,
+                      [option.key]: color
+                    }
+                  })}
+                  onReset={() => {
+                    const nextColors = { ...data.textColors };
+                    delete nextColors[option.key];
+                    setData({ ...data, textColors: nextColors });
+                  }}
+                />
+              ))}
+            </div>
+            <Button
+              className="mt-4 w-full"
+              size="sm"
+              type="button"
+              variant="secondary"
+              onClick={() => setData({ ...data, textColors: {} })}
+            >
+              <RotateCcw size={15} /> Reset defaults
+            </Button>
+          </Panel>
+
           <Panel title="Personal Information">
             {getMissingPersonalFields().length > 0 && (
               <p className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -284,7 +385,7 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
             <Textarea maxLength={600} value={data.summary} onChange={(event) => setData({ ...data, summary: event.target.value })} placeholder="Impact-focused summary for the target role." />
             <div className="mt-2 flex flex-wrap gap-2">
               {["Frontend engineer with product instincts", "Backend engineer focused on reliable systems", "Full-stack developer shipping polished user experiences"].map((suggestion) => (
-                <button className="rounded border border-border bg-white px-2 py-1 text-xs" key={suggestion} onClick={() => setData({ ...data, summary: suggestion })}>{suggestion}</button>
+                <button className="rounded border border-border bg-surface px-2 py-1 text-xs" key={suggestion} onClick={() => setData({ ...data, summary: suggestion })}>{suggestion}</button>
               ))}
             </div>
           </Panel>
@@ -335,7 +436,7 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
                 <Input placeholder="Role" value={item.role} onChange={(e) => updateArray("experience", index, { role: e.target.value })} />
                 <DateField label="Start month" value={item.startDate} onChange={(value) => updateArray("experience", index, { startDate: value })} />
                 <DateField label="End month" value={item.endDate} disabled={item.current} onChange={(value) => updateArray("experience", index, { endDate: value })} />
-                <label className="flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm">
+                <label className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm">
                   <input
                     checked={item.current}
                     className="h-4 w-4 accent-primary"
@@ -408,7 +509,7 @@ export function ResumeBuilder({ initialData, resumeId }: { initialData: ResumeDa
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="rounded-lg border border-border bg-white p-4"><h2 className="mb-3 font-semibold">{title}</h2>{children}</section>;
+  return <section className="rounded-lg border border-border bg-surface p-4"><h2 className="mb-3 font-semibold">{title}</h2>{children}</section>;
 }
 
 function Grid({ children }: { children: React.ReactNode }) {
@@ -421,6 +522,44 @@ function Collection<T>({ title, children, onAdd, addLabel }: { title: string; it
       <div className="space-y-4">{children}</div>
       <Button className="mt-3" variant="secondary" onClick={onAdd}><Plus size={16} /> {addLabel}</Button>
     </Panel>
+  );
+}
+
+function ColorField({
+  defaultColor,
+  label,
+  value,
+  onChange,
+  onReset
+}: {
+  defaultColor: string;
+  label: string;
+  value?: string;
+  onChange: (color: string) => void;
+  onReset: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/35 px-3 py-2">
+      <div className="min-w-0">
+        <p className="text-sm font-medium">{label}</p>
+        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="h-3 w-3 rounded-full border border-border" style={{ backgroundColor: defaultColor }} />
+          <span>{value ? "Custom" : "Default"}</span>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <input
+          aria-label={`${label} color`}
+          className="h-9 w-10 cursor-pointer rounded border border-border bg-surface p-1"
+          type="color"
+          value={value ?? defaultColor}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        <Button disabled={!value} size="icon" type="button" variant="ghost" onClick={onReset} title={`Reset ${label}`}>
+          <RotateCcw size={15} />
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -445,7 +584,7 @@ function DateField({
 
   return (
     <button
-      className={`flex h-10 w-full items-center justify-between rounded-md border border-border bg-white px-3 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-primary/20 ${disabled ? "cursor-not-allowed opacity-60" : "hover:bg-muted/40"}`}
+      className={`flex h-10 w-full items-center justify-between rounded-md border border-border bg-surface px-3 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-primary/20 ${disabled ? "cursor-not-allowed opacity-60" : "hover:bg-muted/40"}`}
       disabled={disabled}
       type="button"
       onClick={openPicker}

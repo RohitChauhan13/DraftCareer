@@ -30,7 +30,7 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-      <div className="w-full max-w-md rounded-lg border border-border bg-white shadow-soft">
+      <div className="w-full max-w-md rounded-lg border border-border bg-surface text-surface-foreground shadow-soft">
         <div className="flex items-start justify-between gap-4 border-b border-border p-5">
           <div className="flex gap-3">
             <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-md ${variant === "danger" ? "bg-red-50 text-destructive" : "bg-emerald-50 text-primary"}`}>

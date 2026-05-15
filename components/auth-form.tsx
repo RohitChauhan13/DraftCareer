@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { emailSchema, passwordSchema, signupSchema } from "@/lib/validations";
 import { WordLoader } from "@/components/page-loader";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Mode = "login" | "signup";
 type View = Mode | "forgot";
@@ -63,12 +64,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
       if (view === "signup") {
         setEmail(validation.data.email);
         setNeedsOtp(true);
-        toast.success("OTP sent to your email");
+        toast.success("OTP sent");
       } else {
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to continue");
+      toast.error(error instanceof Error ? error.message : "Try again");
     } finally {
       setLoading(false);
     }
@@ -95,9 +96,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
       if (!response.ok) throw new Error(data.error);
       setEmail(parsed.data);
       setNeedsOtp(true);
-      toast.success("Reset OTP sent if the account exists");
+      toast.success("OTP sent");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to send reset OTP");
+      toast.error(error instanceof Error ? error.message : "OTP failed");
     } finally {
       setLoading(false);
     }
@@ -131,12 +132,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
-      toast.success(view === "forgot" ? "Password reset successfully" : "Email verified");
+      toast.success(view === "forgot" ? "Password reset" : "Verified");
       if (view === "forgot") {
         setView("login");
         setNeedsOtp(false);
       } else {
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Invalid OTP");
@@ -156,7 +157,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         : "Welcome back";
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[linear-gradient(135deg,#f8fafc,#eefdf7_45%,#fff7ed)] px-4 py-10">
+    <main className="min-h-screen bg-background text-foreground">
       {loading && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 px-4 backdrop-blur-sm">
           <WordLoader
@@ -181,13 +182,20 @@ export function AuthForm({ mode }: { mode: Mode }) {
           />
         </div>
       )}
-      <Card className="w-full max-w-md">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+        <Link className="text-xl font-black tracking-normal text-foreground" href="/">
+          HireSheet
+        </Link>
+        <ThemeToggle />
+      </header>
+      <section className="grid min-h-[calc(100vh-72px)] place-items-center px-4 pb-8 sm:px-6">
+      <Card className="w-full max-w-md overflow-hidden">
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-md bg-primary text-white">
+          <div className="flex items-start gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               {needsOtp ? <ShieldCheck size={21} /> : <Mail size={21} />}
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className="text-xl font-semibold">{title}</h1>
               <p className="text-sm text-muted-foreground">
                 {needsOtp ? "Enter the OTP sent to your inbox." : "Build and manage professional resumes."}
@@ -240,9 +248,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
               <Button className="w-full" loading={loading} loadingText={view === "signup" ? "Creating account" : "Logging in"}>
                 {view === "signup" ? "Create account" : "Log in"}
               </Button>
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="text-center text-sm leading-6 text-muted-foreground">
                 {view === "signup" ? "Already have an account? " : "New here? "}
-                <Link className="font-medium text-primary" href={view === "signup" ? "/login" : "/signup"}>
+                <Link className="font-medium text-primary" href={view === "signup" ? "/login" : "/signup"} replace>
                   {view === "signup" ? "Log in" : "Create account"}
                 </Link>
               </p>
@@ -250,6 +258,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           )}
         </CardContent>
       </Card>
+      </section>
     </main>
   );
 }
@@ -292,12 +301,12 @@ function OtpStep({
       }}
       noValidate
     >
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
         {digits.map((digit, index) => (
           <input
             aria-label={`OTP digit ${index + 1}`}
             autoComplete={index === 0 ? "one-time-code" : "off"}
-            className="h-12 rounded-md border border-border bg-white text-center text-lg font-semibold outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="h-11 min-w-0 rounded-md border border-border bg-surface text-center text-lg font-semibold outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 sm:h-12"
             inputMode="numeric"
             key={index}
             maxLength={1}

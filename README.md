@@ -65,6 +65,31 @@ Notes:
 - `DATABASE_URL` is required by Prisma.
 - `JWT_SECRET` must be at least 24 characters.
 - Brevo variables are needed for production OTP emails. In development, OTP codes are logged to the console when Brevo is not configured.
+- Users default to the `user` role. Set your own `users.role` value to `admin` directly in the database to manage donation settings from `/account`.
+
+### Admin and Donation Settings
+
+The `/support` donation page is controlled from the database. After migrations run, every account has `users.role = 'user'` by default. To make your account an admin, update your user row directly:
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
+```
+
+Admin users can open `/account` to manage:
+
+- Show or hide the `/support` page
+- UPI ID
+- Show or hide only the QR code
+
+### Public Resume Links
+
+Saved resumes can be made public from the builder. When public sharing is enabled, the app creates a random link like:
+
+```text
+/r/9f1a2b3c4d5e6f70
+```
+
+Turning sharing off keeps the slug reserved but shows a private/unavailable page to visitors.
 
 ### Database Setup
 

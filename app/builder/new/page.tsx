@@ -6,7 +6,7 @@ import { emptyResumeData } from "@/utils/resume";
 import type { TemplateId, ThemeId } from "@/types/resume";
 
 const templateIds: TemplateId[] = ["modern", "ats", "minimal", "developer", "classic", "executive", "timeline", "compact", "editorial", "accent", "split", "mono"];
-const themeIds: ThemeId[] = ["white", "charcoal", "taupe", "navy", "blue", "teal", "green", "orange", "red"];
+const themeIds: ThemeId[] = ["purple", "charcoal", "taupe", "navy", "blue", "teal", "green", "orange", "red"];
 
 export default async function NewResumePage({ searchParams }: { searchParams: Promise<{ templateId?: string; themeId?: string }> }) {
   const user = await getCurrentUser();

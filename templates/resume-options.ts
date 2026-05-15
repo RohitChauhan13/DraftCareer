@@ -1,7 +1,7 @@
 import type { TemplateId, ThemeId } from "@/types/resume";
 
 export const resumeThemes: { id: ThemeId; label: string; color: string; text: string }[] = [
-  { id: "white", label: "White", color: "#ffffff", text: "#111827" },
+  { id: "purple", label: "Purple", color: "#7c3aed", text: "#ffffff" },
   { id: "charcoal", label: "Charcoal", color: "#30363d", text: "#ffffff" },
   { id: "taupe", label: "Taupe", color: "#ad9c94", text: "#ffffff" },
   { id: "navy", label: "Navy", color: "#16427f", text: "#ffffff" },

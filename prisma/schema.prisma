@@ -12,6 +12,7 @@ model User {
   name          String
   email         String   @unique
   passwordHash  String   @map("password_hash")
+  role          String   @default("user")
   emailVerified Boolean  @default(false) @map("email_verified")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -40,6 +41,8 @@ model Resume {
   userId     String          @map("user_id")
   title      String
   templateId String          @default("modern") @map("template_id")
+  isPublic   Boolean         @default(false) @map("is_public")
+  shareSlug  String?         @unique @map("share_slug")
   createdAt  DateTime        @default(now()) @map("created_at")
   updatedAt  DateTime        @updatedAt @map("updated_at")
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -60,4 +63,15 @@ model ResumeSection {
 
   @@unique([resumeId, sectionType])
   @@map("resume_sections")
+}
+
+model DonationSettings {
+  id            String   @id @default("main")
+  isPageVisible Boolean  @default(true) @map("is_page_visible")
+  upiId         String   @default("example@ybl") @map("upi_id")
+  isQrVisible   Boolean  @default(true) @map("is_qr_visible")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("donation_settings")
 }

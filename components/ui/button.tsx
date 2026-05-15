@@ -24,7 +24,7 @@ export function Button({
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-md border font-medium transition focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60",
         variant === "primary" && "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
-        variant === "secondary" && "border-border bg-white text-foreground hover:bg-muted/60",
+        variant === "secondary" && "border-border bg-surface text-foreground hover:bg-muted/60",
         variant === "ghost" && "border-transparent bg-transparent text-foreground hover:bg-muted/70",
         variant === "danger" && "border-destructive bg-destructive text-white hover:bg-destructive/90",
         size === "sm" && "h-9 px-3 text-sm",

@@ -4,6 +4,7 @@ import { DashboardActions } from "@/components/dashboard-actions";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LogoutButton } from "@/components/logout-button";
 import { NavActionLink } from "@/components/nav-action-link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -19,13 +20,17 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="border-b border-border bg-white">
+      <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div>
             <p className="text-sm text-muted-foreground">HireSheet</p>
             <h1 className="text-2xl font-semibold">Welcome, {user.name}</h1>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <NavActionLink href="/account">My Account</NavActionLink>
+            <LogoutButton />
+          </div>
         </div>
       </header>
 
@@ -39,7 +44,7 @@ export default async function DashboardPage() {
         </div>
 
         {resumes.length === 0 ? (
-          <div className="grid min-h-80 place-items-center rounded-lg border border-dashed border-border bg-white p-8 text-center">
+          <div className="grid min-h-80 place-items-center rounded-lg border border-dashed border-border bg-surface p-8 text-center">
             <div>
               <FileText className="mx-auto mb-4 text-primary" size={42} />
               <h3 className="text-lg font-semibold">No resumes yet</h3>

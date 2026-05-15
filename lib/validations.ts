@@ -59,3 +59,17 @@ export const resumePayloadSchema = z.object({
   templateId: z.enum(["modern", "ats", "minimal", "developer", "classic", "executive", "timeline", "compact", "editorial", "accent", "split", "mono"]).default("modern"),
   sections: z.array(resumeSectionSchema).default([])
 });
+
+export const donationSettingsSchema = z.object({
+  isPageVisible: z.boolean().optional(),
+  upiId: z
+    .string()
+    .trim()
+    .min(3, "UPI ID is required.")
+    .max(80, "UPI ID must be 80 characters or less.")
+    .regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/, "Enter a valid UPI ID, for example name@ybl.")
+    .optional(),
+  isQrVisible: z.boolean().optional()
+}).refine((value) => Object.keys(value).length > 0, {
+  message: "Send at least one setting to update."
+});
