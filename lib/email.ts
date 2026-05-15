@@ -7,11 +7,11 @@ type SendOtpArgs = {
 export async function sendOtpEmail({ email, otp, purpose }: SendOtpArgs) {
   const apiKey = process.env.BREVO_API_KEY;
   const senderEmail = process.env.BREVO_SENDER_EMAIL;
-  const senderName = process.env.BREVO_SENDER_NAME ?? "HireSheet";
+  const senderName = process.env.BREVO_SENDER_NAME ?? "DraftCareer";
   const isPasswordReset = purpose === "password_reset";
   const subject = isPasswordReset
-    ? "Reset your HireSheet password"
-    : "Verify your HireSheet account";
+    ? "Reset your DraftCareer password"
+    : "Verify your DraftCareer account";
 
   if (!apiKey || !senderEmail) {
     if (process.env.NODE_ENV !== "production") {
@@ -36,11 +36,11 @@ export async function sendOtpEmail({ email, otp, purpose }: SendOtpArgs) {
         otp,
         title: isPasswordReset ? "Reset your password" : "Verify your account",
         preview: isPasswordReset
-          ? "Use this OTP to reset your HireSheet password."
-          : "Use this OTP to complete your HireSheet account setup.",
+          ? "Use this OTP to reset your DraftCareer password."
+          : "Use this OTP to complete your DraftCareer account setup.",
         message: isPasswordReset
           ? "We received a request to reset your password. Enter the verification code below to create a new password."
-          : "Thanks for creating your HireSheet account. Enter the verification code below to activate your account."
+          : "Thanks for creating your DraftCareer account. Enter the verification code below to activate your account."
       }),
       textContent: `${subject}\n\nYour verification code is ${otp}.\n\nThis code expires in 5 minutes. If you did not request this, you can ignore this email.`
     })
@@ -78,7 +78,7 @@ function professionalOtpEmail({
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
             <tr>
               <td style="background:#047857;padding:24px 28px;color:#ffffff;">
-                <div style="font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;">HireSheet</div>
+                <div style="font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;">DraftCareer</div>
                 <h1 style="margin:10px 0 0;font-size:24px;line-height:1.25;">${title}</h1>
               </td>
             </tr>
@@ -94,7 +94,7 @@ function professionalOtpEmail({
             </tr>
             <tr>
               <td style="border-top:1px solid #e5e7eb;padding:18px 28px;background:#f9fafb;color:#6b7280;font-size:12px;line-height:1.5;">
-                Sent by HireSheet. Please do not share this code with anyone.
+                Sent by DraftCareer. Please do not share this code with anyone.
               </td>
             </tr>
           </table>

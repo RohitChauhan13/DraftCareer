@@ -1,23 +1,23 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { ArrowLeft, BadgeIndianRupee, HeartHandshake, QrCode, ShieldCheck, Sparkles } from "lucide-react";
-import { SupportUnavailable } from "@/components/support-unavailable";
+import { DonationUnavailable } from "@/components/donation-unavailable";
 import { createUpiUrl, getDonationSettings } from "@/lib/donation";
 
 export const dynamic = "force-dynamic";
 
 const presetAmounts = [49, 99, 199];
 
-export default async function SupportPage() {
+export default async function DonationPage() {
   const settings = await getDonationSettings();
-  if (!settings.isPageVisible) return <SupportUnavailable />;
+  if (!settings.isPageVisible) return <DonationUnavailable />;
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <header className="border-b border-border bg-surface/90 backdrop-blur">
         <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
           <Link className="flex min-w-0 items-center gap-2 text-xl font-black tracking-normal sm:text-2xl" href="/">
-            HireSheet
+            DraftCareer
           </Link>
           <Link className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 text-sm font-semibold hover:bg-muted sm:px-4" href="/">
             <ArrowLeft size={16} /> Home
@@ -31,13 +31,13 @@ export default async function SupportPage() {
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold text-muted-foreground shadow-sm sm:px-4 sm:text-sm">
               <HeartHandshake className="text-primary" size={17} />
-              Support independent building
+              Donate to independent building
             </div>
             <h1 className="mt-5 text-4xl font-black leading-[1.06] tracking-normal sm:mt-6 sm:text-6xl lg:text-7xl">
-              Help keep HireSheet fast, focused, and useful.
+              Help keep DraftCareer fast, focused, and useful.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8">
-              If HireSheet helped you create a better resume, a small contribution helps us keep improving templates, exports, and the builder experience.
+              If DraftCareer helped you create a better resume, a small contribution helps us keep improving templates, exports, and the builder experience.
             </p>
 
             {settings.isQrVisible ? (
@@ -59,7 +59,7 @@ export default async function SupportPage() {
                       key={amount}
                     >
                       <span className="block text-xl font-black sm:text-2xl">Rs {amount}</span>
-                      <span className="mt-1 block text-xs font-semibold text-muted-foreground">quick support</span>
+                      <span className="mt-1 block text-xs font-semibold text-muted-foreground">quick donation</span>
                     </a>
                   ))}
                 </div>
@@ -80,7 +80,7 @@ export default async function SupportPage() {
               <div className="flex items-center justify-between gap-4 border-b border-border pb-4 sm:pb-5">
                 <div>
                   <p className="text-xs font-bold uppercase text-primary sm:text-sm">Donation QR</p>
-                  <h2 className="mt-1 text-xl font-black sm:text-2xl">Scan and support</h2>
+                  <h2 className="mt-1 text-xl font-black sm:text-2xl">Scan and donate</h2>
                 </div>
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-muted text-primary sm:h-12 sm:w-12">
                   <QrCode size={22} />
@@ -117,7 +117,7 @@ export default async function SupportPage() {
                 </div>
                 <div className="flex items-center gap-3 rounded-md bg-muted p-3 sm:p-4">
                   <Sparkles className="text-accent" size={22} />
-                  <p className="text-sm font-semibold">Every small support helps the product improve.</p>
+                  <p className="text-sm font-semibold">Every small donation helps the product improve.</p>
                 </div>
               </div>
             </div>

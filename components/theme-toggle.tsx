@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const storageKey = "hiresheet-theme";
+const storageKey = "draftcareer-theme";
 
 type Theme = "light" | "dark";
 

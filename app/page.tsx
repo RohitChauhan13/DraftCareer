@@ -40,15 +40,15 @@ export default async function HomePage() {
       <header className="relative z-10 border-b border-border bg-surface/90 backdrop-blur">
         <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
           <Link className="flex min-w-0 items-center gap-2 text-xl font-black tracking-tight text-foreground sm:text-2xl" href="/">
-            HireSheet
+            DraftCareer
           </Link>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <Link className="hidden rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted md:inline-flex" href="#about">
               About
             </Link>
             {donationSettings.isPageVisible && (
-              <Link className="hidden rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted md:inline-flex" href="/support">
-                Support
+              <Link className="hidden rounded-md px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted md:inline-flex" href="/donation">
+                Donate us
               </Link>
             )}
             <ThemeToggle />
@@ -131,7 +131,7 @@ export default async function HomePage() {
       <section className="bg-surface px-5 py-16 sm:px-8" id="about">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">About HireSheet</p>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">About DraftCareer</p>
             <h2 className="mt-3 text-3xl font-black text-foreground sm:text-4xl">A resume builder made for people who want to move quickly and look credible.</h2>
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-3">

@@ -20,7 +20,7 @@ export default async function AccountPage() {
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <div>
-            <p className="text-sm text-muted-foreground">HireSheet</p>
+            <p className="text-sm text-muted-foreground">DraftCareer</p>
             <h1 className="text-2xl font-semibold">My Account</h1>
           </div>
           <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/dashboard">
@@ -60,7 +60,7 @@ export default async function AccountPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold">Donation Settings</h2>
-                  <p className="text-sm text-muted-foreground">Controls the public /support page.</p>
+                  <p className="text-sm text-muted-foreground">Controls the public /donation page.</p>
                 </div>
               </div>
             </CardHeader>

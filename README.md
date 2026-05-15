@@ -1,10 +1,10 @@
-﻿# HireSheet
+# DraftCareer
 
-HireSheet is a full-stack resume builder for creating, saving, customizing, and exporting professional resumes. It gives users a focused workspace for building ATS-friendly resumes, choosing templates, managing saved resume history, and downloading polished PDFs.
+DraftCareer is a full-stack resume builder for creating, saving, customizing, and exporting professional resumes. It gives users a focused workspace for building ATS-friendly resumes, choosing templates, managing saved resume history, and downloading polished PDFs.
 
-## Why HireSheet
+## Why DraftCareer
 
-Many resume tools feel either too rigid or too generic. HireSheet is designed to make the resume-building flow fast, clear, and credible: users can sign up, verify their account, build a resume section by section, preview it live, switch templates, save progress, and export a final PDF when ready.
+Many resume tools feel either too rigid or too generic. DraftCareer is designed to make the resume-building flow fast, clear, and credible: users can sign up, verify their account, build a resume section by section, preview it live, switch templates, save progress, and export a final PDF when ready.
 
 ## Features
 
@@ -57,7 +57,7 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
 JWT_SECRET="your-long-random-secret-at-least-24-characters"
 BREVO_API_KEY="your-brevo-api-key"
 BREVO_SENDER_EMAIL="your-verified-sender@example.com"
-BREVO_SENDER_NAME="HireSheet"
+BREVO_SENDER_NAME="DraftCareer"
 ```
 
 Notes:
@@ -69,7 +69,7 @@ Notes:
 
 ### Admin and Donation Settings
 
-The `/support` donation page is controlled from the database. After migrations run, every account has `users.role = 'user'` by default. To make your account an admin, update your user row directly:
+The `/donation` donation page is controlled from the database. After migrations run, every account has `users.role = 'user'` by default. To make your account an admin, update your user row directly:
 
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
@@ -77,7 +77,7 @@ UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
 
 Admin users can open `/account` to manage:
 
-- Show or hide the `/support` page
+- Show or hide the `/donation` page
 - UPI ID
 - Show or hide only the QR code
 
@@ -86,7 +86,7 @@ Admin users can open `/account` to manage:
 Saved resumes can be made public from the builder. When public sharing is enabled, the app creates a random link like:
 
 ```text
-/r/9f1a2b3c4d5e6f70
+/share/9f1a2b3c4d5e6f70
 ```
 
 Turning sharing off keeps the slug reserved but shows a private/unavailable page to visitors.
@@ -152,7 +152,7 @@ This project can be deployed on platforms that support Next.js and PostgreSQL, s
 
 ## Repository
 
-GitHub: https://github.com/RohitChauhan13/HireSheet
+GitHub: https://github.com/RohitChauhan13/DraftCareer
 
 ## License
 

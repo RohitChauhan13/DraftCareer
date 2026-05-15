@@ -7,7 +7,7 @@ export function ResumeUnavailable() {
       <header className="border-b border-border bg-surface/90 backdrop-blur">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-8">
           <Link className="text-xl font-black sm:text-2xl" href="/">
-            HireSheet
+            DraftCareer
           </Link>
           <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/">
             <Home size={16} /> Home

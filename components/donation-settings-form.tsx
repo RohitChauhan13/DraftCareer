@@ -41,8 +41,8 @@ export function DonationSettingsForm({ initialSettings }: { initialSettings: Don
 
       <SettingToggle
         checked={isPageVisible}
-        description={isPageVisible ? "The /support page is visible." : "The /support page returns not found."}
-        label="Show support page"
+        description={isPageVisible ? "The /donation page is visible." : "The /donation page returns not found."}
+        label="Show donation page"
         onChange={setIsPageVisible}
       />
       <SettingToggle

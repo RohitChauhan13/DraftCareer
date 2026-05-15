@@ -51,7 +51,7 @@ export default async function PublicResumePage({ params }: { params: Promise<{ s
       <header className="border-b border-border bg-surface/95 backdrop-blur">
         <nav className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4">
           <Link className="inline-flex items-center gap-2 text-xl font-black" href="/">
-            <FileText className="text-primary" size={22} /> HireSheet
+            <FileText className="text-primary" size={22} /> DraftCareer
           </Link>
           <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/">
             <ArrowLeft size={16} /> Home

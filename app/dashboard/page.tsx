@@ -23,7 +23,7 @@ export default async function DashboardPage() {
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div>
-            <p className="text-sm text-muted-foreground">HireSheet</p>
+            <p className="text-sm text-muted-foreground">DraftCareer</p>
             <h1 className="text-2xl font-semibold">Welcome, {user.name}</h1>
           </div>
           <div className="flex items-center gap-2">

@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft, HeartOff, Home, Sparkles } from "lucide-react";
 
-export function SupportUnavailable() {
+export function DonationUnavailable() {
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <header className="border-b border-border bg-surface/90 backdrop-blur">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-8">
           <Link className="text-xl font-black tracking-normal sm:text-2xl" href="/">
-            HireSheet
+            DraftCareer
           </Link>
           <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold hover:bg-muted" href="/">
             <Home size={16} /> Home
@@ -23,10 +23,10 @@ export function SupportUnavailable() {
               <HeartOff size={38} />
             </div>
             <div>
-              <p className="text-sm font-black uppercase tracking-normal text-primary">Support paused</p>
+              <p className="text-sm font-black uppercase tracking-normal text-primary">Donations paused</p>
               <h1 className="mt-3 text-4xl font-black leading-tight sm:text-5xl">Donations are temporarily unavailable.</h1>
               <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
-                The support page is turned off right now. Thanks for the kindness, truly. You can still keep building resumes.
+                The donation page is turned off right now. Thanks for the kindness, truly. You can still keep building resumes.
               </p>
             </div>
           </div>

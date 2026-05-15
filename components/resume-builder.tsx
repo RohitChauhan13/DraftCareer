@@ -197,7 +197,7 @@ export function ResumeBuilder({ initialData, resumeId, initialShare }: { initial
 
   async function copyShareLink() {
     if (!share.shareSlug) return;
-    const url = `${window.location.origin}/r/${share.shareSlug}`;
+    const url = `${window.location.origin}/share/${share.shareSlug}`;
     await navigator.clipboard.writeText(url);
     toast.success("Copied");
   }

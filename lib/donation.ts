@@ -22,8 +22,8 @@ export type DonationSettings = {
 export function createUpiUrl(upiId: string, amount?: number) {
   const params = new URLSearchParams({
     pa: upiId,
-    pn: "HireSheet",
-    tn: "Support HireSheet",
+    pn: "DraftCareer",
+    tn: "Donate to DraftCareer",
     cu: "INR"
   });
   if (amount) params.set("am", amount.toFixed(2));
