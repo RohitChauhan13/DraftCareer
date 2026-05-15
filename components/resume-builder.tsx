@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
 import type { ResumeData, ResumeTextColorKey } from "@/types/resume";
@@ -48,6 +48,7 @@ export function ResumeBuilder({
   const [exporting, setExporting] = useState(false);
   const [confirmDownload, setConfirmDownload] = useState(false);
   const [confirmShare, setConfirmShare] = useState(false);
+  const [visibilityOpen, setVisibilityOpen] = useState(false);
   const [zoom, setZoom] = useState(0.78);
   const [draggingSkill, setDraggingSkill] = useState<string | null>(null);
   const [share, setShare] = useState<ResumeShareInfo>(initialShare ?? { isPublic: false, shareSlug: null });
@@ -256,9 +257,41 @@ async function downloadPdf() {
             <Button variant="secondary" onClick={save} loading={saving} loadingText="Saving"><Save size={16} /> Save</Button>
             {resumeId && (
               <>
-                <Button variant="secondary" onClick={() => setConfirmShare(true)} loading={sharing} loadingText="Sharing">
-                  {share.isPublic ? <EyeOff size={16} /> : <Eye size={16} />} {share.isPublic ? "Private" : "Public"}
-                </Button>
+                <div className="relative">
+                  <Button
+                    aria-expanded={visibilityOpen}
+                    aria-haspopup="menu"
+                    variant="secondary"
+                    onClick={() => setVisibilityOpen((value) => !value)}
+                  >
+                    {share.isPublic ? <Eye size={16} /> : <EyeOff size={16} />}
+                    Visibility
+                    <ChevronDown size={15} />
+                  </Button>
+                  {visibilityOpen && (
+                    <div className="absolute right-0 top-11 z-30 w-56 overflow-hidden rounded-md border border-border bg-surface shadow-[0_16px_40px_rgba(15,23,42,0.18)]">
+                      <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2.5">
+                        <span className="text-xs font-semibold uppercase text-muted-foreground">Status</span>
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-bold ${share.isPublic ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}>
+                          {share.isPublic ? <Eye size={13} /> : <EyeOff size={13} />}
+                          {share.isPublic ? "Public" : "Private"}
+                        </span>
+                      </div>
+                      <button
+                        className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm font-medium transition hover:bg-muted"
+                        disabled={sharing}
+                        type="button"
+                        onClick={() => {
+                          setVisibilityOpen(false);
+                          setConfirmShare(true);
+                        }}
+                      >
+                        <span>{share.isPublic ? "Make private" : "Make public"}</span>
+                        {share.isPublic ? <EyeOff className="text-muted-foreground" size={15} /> : <Eye className="text-muted-foreground" size={15} />}
+                      </button>
+                    </div>
+                  )}
+                </div>
                 {share.shareSlug && (
                   <Button size="icon" variant="secondary" onClick={copyShareLink} title="Copy public link">
                     <Copy size={16} />
