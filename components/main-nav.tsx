@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeIndianRupee, FileText, Home, LayoutDashboard, LayoutTemplate, LogIn, Menu, UserRound, X } from "lucide-react";
+import { Activity, BadgeIndianRupee, FileText, Home, LayoutDashboard, LayoutTemplate, LogIn, Menu, UserRound, X } from "lucide-react";
 import { LogoutButton } from "@/components/logout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 type MainNavUser = {
   name: string;
   email: string;
+  role?: string;
 } | null;
 
 export function MainNav({ user, showDonation = true }: { user: MainNavUser; showDonation?: boolean }) {
@@ -19,6 +20,7 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
     { label: "Home", href: "/", icon: Home },
     { label: "Templates", href: protectedHref ?? "/builder/new", icon: LayoutTemplate },
     ...(showDonation ? [{ label: "Donate us", href: "/donation", icon: BadgeIndianRupee }] : []),
+    ...(user?.role === "admin" ? [{ label: "States", href: "/states", icon: Activity }] : []),
     { label: "Dashboard", href: protectedHref ?? "/dashboard", icon: LayoutDashboard }
   ];
 

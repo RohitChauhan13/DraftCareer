@@ -19,7 +19,7 @@ export default async function NewResumePage({ searchParams }: { searchParams: Pr
   const themeId = themeIds.includes(params.themeId as ThemeId) ? params.themeId as ThemeId : "red";
 
   if (!templateId) {
-    return <TemplateGallery userName={user.name} userEmail={user.email} showDonation={donationSettings.isPageVisible} />;
+    return <TemplateGallery userName={user.name} userEmail={user.email} userRole={user.role} showDonation={donationSettings.isPageVisible} />;
   }
 
   return (
@@ -34,7 +34,7 @@ export default async function NewResumePage({ searchParams }: { searchParams: Pr
           email: user.email
         }
       }}
-      user={{ name: user.name, email: user.email }}
+      user={{ name: user.name, email: user.email, role: user.role }}
       showDonation={donationSettings.isPageVisible}
     />
   );

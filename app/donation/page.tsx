@@ -16,7 +16,7 @@ export default async function DonationPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <MainNav user={user ? { name: user.name, email: user.email } : null} showDonation={settings.isPageVisible} />
+      <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} showDonation={settings.isPageVisible} />
 
       <section className="relative">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />

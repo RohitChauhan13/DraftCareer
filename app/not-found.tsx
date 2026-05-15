@@ -8,7 +8,7 @@ export default async function NotFoundPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <MainNav user={user ? { name: user.name, email: user.email } : null} />
+      <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} />
 
       <section className="relative grid min-h-[calc(100vh-73px)] place-items-center px-4 py-12">
         <div className="absolute left-1/2 top-16 h-52 w-52 -translate-x-1/2 rounded-full border border-primary/20 bg-primary/10 blur-2xl" />

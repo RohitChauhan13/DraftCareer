@@ -18,7 +18,7 @@ export default async function AccountPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <MainNav user={{ name: user.name, email: user.email }} showDonation={publicDonationSettings.isPageVisible} />
+      <MainNav user={{ name: user.name, email: user.email, role: user.role }} showDonation={publicDonationSettings.isPageVisible} />
 
       <section className="mx-auto grid max-w-5xl gap-5 px-4 py-8">
         <Card>

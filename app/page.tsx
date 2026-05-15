@@ -63,7 +63,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
       />
-      <MainNav user={user ? { name: user.name, email: user.email } : null} showDonation={donationSettings.isPageVisible} />
+      <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} showDonation={donationSettings.isPageVisible} />
 
       <section className="relative">
         <div className="absolute inset-y-0 right-0 hidden w-[46%] bg-muted lg:block" />

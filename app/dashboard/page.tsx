@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen">
-      <MainNav user={{ name: user.name, email: user.email }} showDonation={donationSettings.isPageVisible} />
+      <MainNav user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />
 
       <section className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">

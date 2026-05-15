@@ -17,12 +17,14 @@ const draftKey = "resume-builder-draft";
 export function TemplateGallery({
   userName,
   userEmail,
+  userRole,
   initialData,
   resumeId,
   showDonation = true
 }: {
   userName: string;
   userEmail: string;
+  userRole?: string;
   initialData?: ResumeData;
   resumeId?: string;
   showDonation?: boolean;
@@ -122,7 +124,7 @@ export function TemplateGallery({
 
   return (
     <main className="min-h-screen bg-background">
-      <MainNav user={{ name: userName, email: userEmail }} showDonation={showDonation} />
+      <MainNav user={{ name: userName, email: userEmail, role: userRole }} showDonation={showDonation} />
       <header className="sticky top-[65px] z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4">
           <div className="flex items-center gap-3">

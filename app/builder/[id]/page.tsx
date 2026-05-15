@@ -19,5 +19,5 @@ export default async function EditResumePage({ params }: { params: Promise<{ id:
   if (!resume) notFound();
   const share = await getResumeShareInfo(resume.id);
 
-  return <ResumeBuilder resumeId={resume.id} initialData={resumeDataFromSections(resume)} initialShare={share} user={{ name: user.name, email: user.email }} showDonation={donationSettings.isPageVisible} />;
+  return <ResumeBuilder resumeId={resume.id} initialData={resumeDataFromSections(resume)} initialShare={share} user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />;
 }

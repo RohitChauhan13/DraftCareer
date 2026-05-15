@@ -38,7 +38,7 @@ export function ResumeBuilder({
   initialData: ResumeData;
   resumeId?: string;
   initialShare?: ResumeShareInfo;
-  user?: { name: string; email: string };
+  user?: { name: string; email: string; role?: string };
   showDonation?: boolean;
 }) {
   const router = useRouter();

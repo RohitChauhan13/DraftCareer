@@ -24,6 +24,7 @@ export default async function ChangeTemplatePage({ params }: { params: Promise<{
       showDonation={donationSettings.isPageVisible}
       userEmail={user.email}
       userName={user.name}
+      userRole={user.role}
     />
   );
 }

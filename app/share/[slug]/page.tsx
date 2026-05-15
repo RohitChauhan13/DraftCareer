@@ -51,7 +51,7 @@ export default async function PublicResumePage({ params }: { params: Promise<{ s
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <MainNav user={user ? { name: user.name, email: user.email } : null} showDonation={donationSettings.isPageVisible} />
+      <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} showDonation={donationSettings.isPageVisible} />
       <section className="overflow-auto px-4 py-8">
         <div className="mx-auto w-fit">
           <ResumePreview data={data} zoom={1} appearance="light" />
