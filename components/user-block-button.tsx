@@ -8,11 +8,13 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export function UserBlockButton({
   disabled = false,
+  iconOnly = false,
   initialBlocked,
   userId,
   userName
 }: {
   disabled?: boolean;
+  iconOnly?: boolean;
   initialBlocked: boolean;
   userId: string;
   userName: string;
@@ -43,9 +45,16 @@ export function UserBlockButton({
 
   return (
     <>
-      <Button disabled={disabled} size="sm" variant={isBlocked ? "secondary" : "danger"} onClick={() => setConfirmOpen(true)}>
+      <Button
+        className={isBlocked ? "border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700" : undefined}
+        disabled={disabled}
+        size={iconOnly ? "icon" : "sm"}
+        title={isBlocked ? "Unblock user" : "Block user"}
+        variant={isBlocked ? "secondary" : "danger"}
+        onClick={() => setConfirmOpen(true)}
+      >
         {isBlocked ? <ShieldCheck size={15} /> : <Ban size={15} />}
-        {isBlocked ? "Unblock" : "Block"}
+        {iconOnly ? <span className="sr-only">{isBlocked ? "Unblock user" : "Block user"}</span> : isBlocked ? "Unblock" : "Block"}
       </Button>
       <ConfirmDialog
         cancelLabel="Cancel"

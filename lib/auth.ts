@@ -45,8 +45,27 @@ export async function getSessionUserId() {
   try {
     const verified = await jwtVerify(token, jwtSecret());
     const userId = verified.payload.userId;
-    return typeof userId === "string" ? userId : null;
+    if (typeof userId !== "string") return null;
+
+    const users = await prisma.$queryRaw<Array<{
+      id: string;
+      isBlocked: boolean;
+      emailVerified: boolean;
+    }>>`
+      SELECT id, is_blocked AS "isBlocked", email_verified AS "emailVerified"
+      FROM users
+      WHERE id = ${userId}
+      LIMIT 1
+    `;
+    const user = users[0] ?? null;
+    if (!user || user.isBlocked || !user.emailVerified) {
+      cookieStore.delete(COOKIE_NAME);
+      return null;
+    }
+
+    return user.id;
   } catch {
+    cookieStore.delete(COOKIE_NAME);
     return null;
   }
 }
@@ -71,6 +90,6 @@ export async function getCurrentUser() {
   `;
 
   const user = users[0] ?? null;
-  if (user?.isBlocked) return null;
+  if (!user || user.isBlocked || !user.emailVerified) return null;
   return user;
 }

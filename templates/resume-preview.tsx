@@ -36,6 +36,7 @@ export function ResumePreview({
 
   return (
     <article
+      data-resume-paper
       className={cn(
         "mx-auto min-h-[1056px] w-[816px] origin-top bg-white text-slate-900 transition",
         allowDark && "dark:bg-slate-950 dark:text-slate-100",
@@ -128,7 +129,7 @@ function StandardResume({ data, accent, allowDark }: { data: ResumeData; accent:
 
   if (data.templateId === "accent") {
     return (
-      <div className="relative min-h-[1056px] px-14 py-10">
+      <div className="relative min-h-[1056px] px-14 py-10" data-resume-fill-page>
         <div className="absolute bottom-0 left-0 top-0 w-5" style={{ backgroundColor: accent }} />
         <header className="mb-4">
           <h1 className="text-4xl font-bold uppercase tracking-normal" style={{ color: data.textColors.name ?? accent }}>{personal.fullName || "Your Name"}</h1>
@@ -192,7 +193,7 @@ function SidebarResume({ data, accent, allowDark, inverted = false }: { data: Re
   const nameStyle = colorStyle(data.textColors.name);
 
   return (
-    <div className={`grid min-h-[1056px] ${inverted ? "grid-cols-[1fr_270px]" : "grid-cols-[260px_1fr]"}`}>
+    <div className={`grid min-h-[1056px] ${inverted ? "grid-cols-[1fr_270px]" : "grid-cols-[260px_1fr]"}`} data-resume-fill-page>
       <aside className="px-8 py-9 text-white" style={{ backgroundColor: accent }}>
         <div className="mb-8 grid h-16 w-16 place-items-center bg-slate-950 text-3xl font-bold leading-none">
           <span className="leading-none">{getInitials(personal.fullName).slice(0, 1)}</span>

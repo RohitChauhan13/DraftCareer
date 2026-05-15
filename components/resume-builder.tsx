@@ -139,24 +139,29 @@ export function ResumeBuilder({
     setConfirmDownload(true);
   }
 
-  async function downloadPdf() {
+async function downloadPdf() {
     if (!resumeId || exporting) return;
     setExporting(true);
     try {
       await persistResume();
       if (!pdfRef.current) throw new Error("Unable to prepare PDF preview");
+      const cleanupPdfSizing = fitPdfPreviewToFullPages(pdfRef.current);
       const html2pdf = (await import("html2pdf.js")).default;
-      await html2pdf()
-        .set({
-          filename: `${data.title.replace(/[^a-z0-9-_]+/gi, "-").toLowerCase() || "resume"}.pdf`,
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-          image: { type: "jpeg", quality: 0.98 },
-          jsPDF: { unit: "px", format: [816, 1056], orientation: "portrait" },
-          margin: 0,
-          pagebreak: { mode: ["css", "legacy"], avoid: [".resume-section", ".resume-entry"] }
-        })
-        .from(pdfRef.current)
-        .save();
+      try {
+        await html2pdf()
+          .set({
+            filename: `${data.title.replace(/[^a-z0-9-_]+/gi, "-").toLowerCase() || "resume"}.pdf`,
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+            image: { type: "jpeg", quality: 0.98 },
+            jsPDF: { unit: "px", format: [816, 1056], orientation: "portrait" },
+            margin: 0,
+            pagebreak: { mode: ["css", "legacy"], avoid: [".resume-section", ".resume-entry"] }
+          })
+          .from(pdfRef.current)
+          .save();
+      } finally {
+        cleanupPdfSizing();
+      }
       toast.success("Downloaded");
       setConfirmDownload(false);
     } catch (error) {
@@ -520,6 +525,34 @@ export function ResumeBuilder({
     next[index] = { ...next[index], ...patch };
     setData({ ...data, [key]: next });
   }
+}
+
+function fitPdfPreviewToFullPages(root: HTMLElement) {
+  const pageHeight = 1056;
+  const paper = root.querySelector<HTMLElement>("[data-resume-paper]");
+  const fillPageNodes = Array.from(root.querySelectorAll<HTMLElement>("[data-resume-fill-page]"));
+  if (!paper) return () => {};
+
+  paper.style.minHeight = "";
+  fillPageNodes.forEach((node) => {
+    node.style.minHeight = "";
+  });
+
+  const fullHeight = Math.max(pageHeight, Math.ceil(paper.scrollHeight / pageHeight) * pageHeight);
+  const previousPaperMinHeight = paper.style.minHeight;
+  const previousFillMinHeights = fillPageNodes.map((node) => node.style.minHeight);
+
+  paper.style.minHeight = `${fullHeight}px`;
+  fillPageNodes.forEach((node) => {
+    node.style.minHeight = `${fullHeight}px`;
+  });
+
+  return () => {
+    paper.style.minHeight = previousPaperMinHeight;
+    fillPageNodes.forEach((node, index) => {
+      node.style.minHeight = previousFillMinHeights[index] ?? "";
+    });
+  };
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import { WordLoader } from "@/components/page-loader";
 type Mode = "login" | "signup";
 type View = Mode | "forgot";
 type Errors = Partial<Record<"name" | "email" | "password" | "otp", string>>;
+const RESEND_SECONDS = 60;
 
 export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonation?: boolean }) {
   const router = useRouter();
@@ -23,8 +24,29 @@ export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonati
   const [loading, setLoading] = useState(false);
   const [needsOtp, setNeedsOtp] = useState(false);
   const [email, setEmail] = useState("");
+  const [resendAvailableAt, setResendAvailableAt] = useState(0);
+  const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
+
+  useEffect(() => {
+    if (!resendAvailableAt) {
+      setResendSecondsLeft(0);
+      return;
+    }
+
+    function tick() {
+      setResendSecondsLeft(Math.max(0, Math.ceil((resendAvailableAt - Date.now()) / 1000)));
+    }
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [resendAvailableAt]);
+
+  function startResendCooldown() {
+    setResendAvailableAt(Date.now() + RESEND_SECONDS * 1000);
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,6 +86,7 @@ export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonati
       if (view === "signup") {
         setEmail(validation.data.email);
         setNeedsOtp(true);
+        startResendCooldown();
         toast.success("OTP sent");
       } else {
         router.replace("/dashboard");
@@ -96,7 +119,38 @@ export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonati
       if (!response.ok) throw new Error(data.error);
       setEmail(parsed.data);
       setNeedsOtp(true);
+      startResendCooldown();
       toast.success("OTP sent");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "OTP failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendOtp() {
+    const parsed = emailSchema.safeParse(email);
+    if (!parsed.success) {
+      setErrors({ email: parsed.error.issues[0]?.message ?? "Enter a valid email." });
+      setNeedsOtp(false);
+      return;
+    }
+
+    setErrors({});
+    setLoading(true);
+    try {
+      const response = await fetch(view === "forgot" ? "/api/auth/forgot-password" : "/api/auth/send-otp", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email: parsed.data,
+          purpose: view === "forgot" ? "password_reset" : "email_verification"
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      startResendCooldown();
+      toast.success("OTP resent");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "OTP failed");
     } finally {
@@ -202,20 +256,23 @@ export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonati
           {needsOtp ? (
             <OtpStep
               errors={errors}
+              email={email}
               loading={loading}
               mode={view}
               onBack={() => {
                 setNeedsOtp(false);
                 setErrors({});
               }}
+              onResend={resendOtp}
               onVerify={verifyOtp}
+              resendSecondsLeft={resendSecondsLeft}
               showPassword={showPassword}
               togglePassword={() => setShowPassword((value) => !value)}
             />
           ) : view === "forgot" ? (
             <form className="space-y-4" onSubmit={sendResetOtp} noValidate>
               <FieldError message={errors.email}>
-                <Input name="email" type="email" placeholder="Email" autoComplete="email" required />
+                <Input name="email" type="email" placeholder="Email" autoComplete="email" required defaultValue={email} />
               </FieldError>
               <Button className="w-full" loading={loading} loadingText="Sending OTP">Send reset OTP</Button>
               <button className="w-full text-center text-sm font-medium text-primary" type="button" onClick={() => setView("login")}>
@@ -230,7 +287,7 @@ export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonati
                 </FieldError>
               )}
               <FieldError message={errors.email}>
-                <Input name="email" type="email" placeholder="Email" autoComplete="email" required onChange={(event) => setEmail(event.target.value)} />
+                <Input name="email" type="email" placeholder="Email" autoComplete="email" required defaultValue={email} onChange={(event) => setEmail(event.target.value)} />
               </FieldError>
               <FieldError message={errors.password}>
                 <PasswordInput show={showPassword} toggle={() => setShowPassword((value) => !value)} autoComplete={view === "signup" ? "new-password" : "current-password"} />
@@ -260,18 +317,24 @@ export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonati
 
 function OtpStep({
   errors,
+  email,
   loading,
   mode,
   onBack,
+  onResend,
   onVerify,
+  resendSecondsLeft,
   showPassword,
   togglePassword
 }: {
   errors: Errors;
+  email: string;
   loading: boolean;
   mode: View;
   onBack: () => void;
+  onResend: () => void;
   onVerify: (otp: string, password?: string) => void;
+  resendSecondsLeft: number;
   showPassword: boolean;
   togglePassword: () => void;
 }) {
@@ -296,6 +359,16 @@ function OtpStep({
       }}
       noValidate
     >
+      <div className="rounded-md border border-border bg-muted/35 p-3">
+        <p className="text-xs font-medium uppercase text-muted-foreground">Confirm email</p>
+        <div className="mt-1 flex items-start justify-between gap-3">
+          <p className="min-w-0 break-words text-sm font-medium text-foreground">{email}</p>
+          <button className="shrink-0 text-sm font-medium text-primary" type="button" onClick={onBack}>
+            Edit
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
         {digits.map((digit, index) => (
           <input
@@ -349,8 +422,13 @@ function OtpStep({
       <Button className="w-full" loading={loading} loadingText={mode === "forgot" ? "Resetting password" : "Verifying OTP"}>
         {mode === "forgot" ? "Reset password" : "Verify and continue"}
       </Button>
-      <button className="w-full text-center text-sm font-medium text-primary" type="button" onClick={onBack}>
-        Back
+      <button
+        className="w-full text-center text-sm font-medium text-primary disabled:cursor-not-allowed disabled:text-muted-foreground"
+        disabled={loading || resendSecondsLeft > 0}
+        type="button"
+        onClick={onResend}
+      >
+        {resendSecondsLeft > 0 ? `Resend OTP in ${resendSecondsLeft}s` : "Resend OTP"}
       </button>
     </form>
   );

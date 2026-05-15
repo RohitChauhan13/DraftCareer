@@ -21,7 +21,7 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
     { label: "Home", href: "/", icon: Home },
     { label: "Templates", href: protectedHref ?? "/builder/new", icon: LayoutTemplate },
     ...(showDonation ? [{ label: "Donate us", href: "/donation", icon: BadgeIndianRupee }] : []),
-    ...(user?.role === "admin" ? [{ label: "States", href: "/states", icon: Activity }] : []),
+    ...(user?.role === "admin" ? [{ label: "Stats", href: "/stats", icon: Activity }] : []),
     { label: "Dashboard", href: protectedHref ?? "/dashboard", icon: LayoutDashboard }
   ];
 
