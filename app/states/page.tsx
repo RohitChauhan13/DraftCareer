@@ -21,6 +21,7 @@ type UserStatsRow = {
   email: string;
   role: string;
   email_verified: boolean;
+  last_seen_at: Date | null;
   created_at: Date;
   updated_at: Date;
   resume_count: bigint;
@@ -42,6 +43,7 @@ export default async function StatesPage() {
       u.email,
       u.role,
       u.email_verified,
+      u.last_seen_at,
       u.created_at,
       u.updated_at,
       COUNT(r.id) AS resume_count,
@@ -51,7 +53,7 @@ export default async function StatesPage() {
     FROM users u
     LEFT JOIN resumes r ON r.user_id = u.id
     GROUP BY u.id
-    ORDER BY GREATEST(u.updated_at, COALESCE(MAX(r.updated_at), u.updated_at)) DESC
+    ORDER BY COALESCE(u.last_seen_at, GREATEST(u.updated_at, COALESCE(MAX(r.updated_at), u.updated_at))) DESC
   `;
 
   const totalUsers = rows.length;
@@ -85,7 +87,7 @@ export default async function StatesPage() {
           <CardHeader>
             <div className="flex flex-col gap-1">
               <h2 className="text-lg font-semibold">Users</h2>
-              <p className="text-sm text-muted-foreground">Sorted by latest account or resume activity.</p>
+              <p className="text-sm text-muted-foreground">Last app use is shown in India time and updates while signed-in users browse the app.</p>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -105,7 +107,8 @@ export default async function StatesPage() {
                 <tbody className="divide-y divide-border">
                   {rows.map((row) => {
                     const resumeCount = Number(row.resume_count);
-                    const lastActivity = latestDate(row.updated_at, row.latest_resume_update);
+                    const inferredActivity = latestDate(row.updated_at, row.latest_resume_update);
+                    const lastActivity = row.last_seen_at ?? inferredActivity;
                     return (
                       <tr className="bg-surface transition hover:bg-muted/35" key={row.id}>
                         <td className="px-4 py-4">
@@ -133,6 +136,9 @@ export default async function StatesPage() {
                             <CalendarDays size={14} />
                             {formatDate(lastActivity)}
                           </div>
+                          {!row.last_seen_at && (
+                            <p className="mt-1 text-xs text-muted-foreground">Inferred from edits</p>
+                          )}
                         </td>
                         <td className="px-4 py-4 font-bold">{resumeCount}</td>
                         <td className="px-4 py-4">{Number(row.public_resume_count)}</td>
@@ -179,7 +185,8 @@ function latestDate(first: Date, second: Date | null) {
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
-    timeStyle: "short"
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata"
   }).format(date);
 }
 

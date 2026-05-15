@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, BadgeIndianRupee, FileText, Home, LayoutDashboard, LayoutTemplate, LogIn, Menu, UserRound, X } from "lucide-react";
+import { LastSeenPing } from "@/components/last-seen-ping";
 import { LogoutButton } from "@/components/logout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -26,6 +27,7 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
+      {user && <LastSeenPing />}
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
         <Link className="flex min-w-0 items-center gap-2 text-lg font-black tracking-normal text-foreground sm:text-2xl" href="/">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
