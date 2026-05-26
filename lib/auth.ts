@@ -59,13 +59,11 @@ export async function getSessionUserId() {
     `;
     const user = users[0] ?? null;
     if (!user || user.isBlocked || !user.emailVerified) {
-      cookieStore.delete(COOKIE_NAME);
       return null;
     }
 
     return user.id;
   } catch {
-    cookieStore.delete(COOKIE_NAME);
     return null;
   }
 }
