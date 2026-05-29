@@ -67,7 +67,7 @@ export default async function HomePage() {
 
       <section className="relative">
         <div className="absolute inset-y-0 right-0 hidden w-[46%] bg-muted lg:block" />
-        <div className="mx-auto grid max-w-7xl items-start gap-8 px-4 py-10 sm:px-8 lg:min-h-[calc(100vh-82px)] lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-10 lg:py-20">
+        <div className="mx-auto grid max-w-7xl items-start gap-8 px-4 py-8 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 lg:py-10">
           <div className="relative z-10 max-w-2xl">
             <p className="text-lg font-extrabold text-primary sm:text-2xl">Fast. Easy. Effective.</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-black leading-[1.08] tracking-normal text-foreground sm:mt-6 sm:text-6xl lg:text-7xl">
@@ -96,37 +96,91 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative z-10 min-h-[420px] overflow-hidden sm:min-h-[520px] lg:min-h-[640px]">
+          <div className="relative z-10 min-h-[500px] overflow-hidden sm:min-h-[640px] lg:min-h-[860px] xl:min-h-[900px]">
             <div className="absolute right-0 top-1/2 h-[82%] w-[82%] -translate-y-1/2 rounded-l-full bg-muted" />
             <div className="absolute right-8 top-8 h-52 w-52 rounded-tr-[5rem] bg-primary/25" />
             <div className="absolute bottom-14 left-4 h-20 w-20 rotate-45 border-[10px] border-primary/70" />
             <div className="absolute bottom-10 right-10 h-24 w-24 rounded-t-full bg-accent/30" />
-            <div className="absolute left-1/2 top-8 w-[620px] max-w-none origin-top -translate-x-1/2 scale-[0.58] rounded-md border border-slate-200 bg-white shadow-[0_26px_90px_rgba(15,23,42,0.18)] dark:border-slate-700 dark:bg-slate-950 dark:shadow-[0_26px_90px_rgba(0,0,0,0.38)] sm:right-14 sm:left-auto sm:top-20 sm:w-[86%] sm:max-w-[620px] sm:translate-x-0 sm:scale-100">
-              <div className="grid grid-cols-[1fr_2.15fr]">
-                <aside className="bg-[#9e2f19] px-6 py-10 text-white">
-                  <div className="mx-auto h-36 w-36 overflow-hidden rounded-full border-[10px] border-[#ffc857] bg-[#f7e0d6] shadow-xl">
-                    <div className="h-full w-full bg-[radial-gradient(circle_at_50%_35%,#ffe7d6_0_18%,#20253c_19%_33%,#f3b02f_34%_100%)]" />
+            <div className="absolute left-1/2 top-8 w-[660px] max-w-none origin-top -translate-x-1/2 scale-[0.58] overflow-hidden rounded-md border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.22)] dark:border-slate-700 dark:bg-slate-950 dark:shadow-[0_30px_100px_rgba(0,0,0,0.42)] sm:right-8 sm:left-auto sm:top-12 sm:w-[88%] sm:max-w-[660px] sm:translate-x-0 sm:scale-[0.86] md:scale-[0.92] lg:scale-100">
+              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-3 dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-rose-400" />
+                  <span className="h-3 w-3 rounded-full bg-amber-400" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-500" />
+                </div>
+                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300">ATS Ready</span>
+              </div>
+              <div className="grid grid-cols-[230px_1fr]">
+                <aside className="bg-slate-950 px-7 py-8 text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="grid aspect-square h-14 w-14 shrink-0 place-items-center rounded-full bg-emerald-400 text-xl font-black leading-none text-slate-950 ring-4 ring-white/10">
+                      R
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase text-emerald-300">Profile</p>
+                      <p className="mt-1 text-sm leading-5 text-slate-300">Polished, reliable web products.</p>
+                    </div>
                   </div>
-                  <div className="mt-24 space-y-16 text-xs font-bold">
-                    <p>2021 - Current</p>
-                    <p>2018 - 2021</p>
-                    <p>2015 - 2018</p>
+
+                  <div className="mt-7 space-y-2.5 text-xs text-slate-300">
+                    <p className="rounded-md bg-white/[0.08] px-3 py-2">Near RTO office Savali, Sangli - 416410</p>
+                    <p className="rounded-md bg-white/[0.08] px-3 py-2">+91 7024756186</p>
+                    <p className="break-all rounded-md bg-white/[0.08] px-3 py-2">rohitchauhan6232@gmail.com</p>
+                  </div>
+
+                  <div className="mt-7">
+                    <p className="text-xs font-black uppercase tracking-normal text-emerald-300">Core Skills</p>
+                    <div className="mt-4 space-y-3">
+                      <SkillMeter label="React / Next.js" width="92%" />
+                      <SkillMeter label="TypeScript" width="86%" />
+                      <SkillMeter label="UI Engineering" width="88%" />
+                    </div>
+                  </div>
+
+                  <div className="mt-7 border-t border-white/10 pt-5">
+                    <p className="text-xs font-black uppercase tracking-normal text-emerald-300">Impact</p>
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <Metric value="2+" label="Years" />
+                      <Metric value="10+" label="Projects" />
+                    </div>
                   </div>
                 </aside>
-                <div className="px-7 py-9">
-                  <h2 className="text-4xl font-black text-[#9e2f19] dark:text-[#f07a5f]">Rohit Chauhan</h2>
-                  <p className="text-lg text-[#9e2f19] dark:text-[#f07a5f]">Software Engineer</p>
-                  <div className="mt-5 space-y-2 text-xs text-slate-600 dark:text-slate-300">
-                    <p>New Delhi, India 110001</p>
-                    <p>+91 11 5555 5555</p>
-                    <p>rohitchauhan6232@gmail.com</p>
+                <div className="px-8 py-8">
+                  <div className="flex items-start justify-between gap-5 border-b border-slate-200 pb-5 dark:border-slate-800">
+                    <div>
+                      <h2 className="text-4xl font-black leading-tight text-slate-950 dark:text-white">Rohit Chauhan</h2>
+                      <p className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">Software Engineer</p>
+                    </div>
+                    <div className="rounded-md bg-amber-100 px-4 py-3 text-right text-xs font-black text-amber-950 dark:bg-amber-300 dark:text-slate-950">
+                      PDF
+                      <br />
+                      Export
+                    </div>
                   </div>
-                  <p className="mt-7 text-sm leading-6 text-slate-700 dark:text-slate-300">
-                    Strategic designer with experience turning complex product goals into clear user journeys, polished systems, and measurable outcomes.
+
+                  <p className="mt-5 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                    Product-minded engineer building fast, accessible interfaces with clean architecture, thoughtful details, and measurable business outcomes.
                   </p>
-                  <ResumeSection title="Skills" />
-                  <ResumeSection title="Work History" long />
-                  <ResumeSection title="Education" />
+
+                  <ResumeSection
+                    title="Work Experience"
+                    items={[
+                      ["Frontend Engineer", "Built dashboard workflows and reusable UI systems for high-traffic teams."],
+                      ["Full Stack Developer", "Delivered authenticated apps with secure data flows and polished PDF output."]
+                    ]}
+                  />
+                  <ResumeSection
+                    title="Projects"
+                    items={[
+                      ["Resume Builder Platform", "Live preview, saved history, professional templates, and export-ready documents."]
+                    ]}
+                  />
+                  <ResumeSection
+                    title="Education"
+                    items={[
+                      ["Bachelor of Computer Applications", "Bharati Vidyapeeth, Sangli (2022-2025)"]
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -164,20 +218,43 @@ export default async function HomePage() {
   );
 }
 
-function ResumeSection({ title, long = false }: { title: string; long?: boolean }) {
+function ResumeSection({ title, items }: { title: string; items: Array<[string, string]> }) {
   return (
-    <section className="mt-7">
-      <h3 className="text-lg font-black text-[#9e2f19] dark:text-[#f07a5f]">{title}</h3>
+    <section className="mt-5">
+      <h3 className="border-b border-slate-200 pb-2 text-sm font-black uppercase tracking-normal text-emerald-700 dark:border-slate-800 dark:text-emerald-300">{title}</h3>
       <div className="mt-3 space-y-3">
-        <div className="h-2 w-full rounded bg-slate-200 dark:bg-slate-700" />
-        <div className="h-2 w-5/6 rounded bg-slate-200 dark:bg-slate-700" />
-        {long && (
-          <>
-            <div className="h-2 w-11/12 rounded bg-slate-200 dark:bg-slate-700" />
-            <div className="h-2 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
-          </>
-        )}
+        {items.map(([heading, text]) => (
+          <div className="grid grid-cols-[11px_1fr] gap-3" key={heading}>
+            <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/15" />
+            <div>
+              <p className="text-sm font-black text-slate-950 dark:text-white">{heading}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">{text}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
+  );
+}
+
+function SkillMeter({ label, width }: { label: string; width: string }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3 text-xs font-bold">
+        <span>{label}</span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15">
+        <div className="h-full rounded-full bg-emerald-400" style={{ width }} />
+      </div>
+    </div>
+  );
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-md border border-white/10 bg-white/[0.08] p-3">
+      <p className="text-xl font-black text-white">{value}</p>
+      <p className="mt-1 text-[11px] font-bold uppercase text-slate-400">{label}</p>
+    </div>
   );
 }
