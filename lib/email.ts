@@ -47,6 +47,12 @@ export async function sendOtpEmail({ email, otp, purpose }: SendOtpArgs) {
   });
 
   if (!response.ok) {
+    const errorBody = await response.text().catch(() => "");
+    console.error("Brevo OTP email failed", {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorBody
+    });
     throw new Error("Unable to send OTP email.");
   }
 }

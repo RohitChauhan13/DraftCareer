@@ -8,9 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const payload = otpRequestSchema.parse(await request.json());
     const otp = await createOtp(payload.email, payload.purpose);
-    void sendOtpEmail({ email: payload.email, otp, purpose: payload.purpose }).catch((error) => {
-      console.error("Unable to send OTP email", error);
-    });
+    await sendOtpEmail({ email: payload.email, otp, purpose: payload.purpose });
     return ok({ message: "OTP sent." });
   } catch (error) {
     return errorResponse(error);

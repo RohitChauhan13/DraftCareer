@@ -22,9 +22,7 @@ export async function POST(request: NextRequest) {
     });
 
     const otp = await createOtp(payload.email, "email_verification");
-    void sendOtpEmail({ email: payload.email, otp, purpose: "email_verification" }).catch((error) => {
-      console.error("Unable to send signup OTP email", error);
-    });
+    await sendOtpEmail({ email: payload.email, otp, purpose: "email_verification" });
 
     return ok({ user, message: "Account created. Check your email for the OTP." }, { status: 201 });
   } catch (error) {
