@@ -127,35 +127,37 @@ export function TemplateGallery({
       <MainNav user={{ name: userName, email: userEmail, role: userRole }} showDonation={showDonation} />
       <header className="sticky top-[65px] z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <Link className="grid h-10 w-10 place-items-center rounded-md border border-border bg-surface" href={resumeId ? `/builder/${resumeId}` : "/dashboard"} title="Back">
               <ArrowLeft size={18} />
             </Link>
-            <div>
+            <div className="min-w-0">
               <h1 className="text-2xl font-bold">Choose your resume template</h1>
               <p className="text-sm text-muted-foreground">Pick a color theme first, then choose the layout you want.</p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <ThemeToggle />
-            <div className="flex items-center gap-2 rounded-md bg-muted px-4 py-3">
-              <span className="mr-1 font-semibold">Colors</span>
-              {resumeThemes.map((themeOption) => (
-                <button
-                  aria-label={themeOption.label}
-                  className="grid h-8 w-8 place-items-center rounded-full border border-border shadow-sm"
-                  key={themeOption.id}
-                  style={{ backgroundColor: themeOption.color }}
-                  title={themeOption.label}
-                  onClick={() => setThemeId(themeOption.id)}
-                >
-                  {themeId === themeOption.id && (
-                    <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-blue-600">
-                      <Check size={15} color={themeOption.text} />
-                    </span>
-                  )}
-                </button>
-              ))}
+            <div className="grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-2 rounded-md bg-muted px-3 py-3 sm:w-auto sm:px-4">
+              <span className="font-semibold">Colors</span>
+              <div className="flex min-w-0 flex-wrap gap-2">
+                {resumeThemes.map((themeOption) => (
+                  <button
+                    aria-label={themeOption.label}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border shadow-sm"
+                    key={themeOption.id}
+                    style={{ backgroundColor: themeOption.color }}
+                    title={themeOption.label}
+                    onClick={() => setThemeId(themeOption.id)}
+                  >
+                    {themeId === themeOption.id && (
+                      <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-blue-600">
+                        <Check size={15} color={themeOption.text} />
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
