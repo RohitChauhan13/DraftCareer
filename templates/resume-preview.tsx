@@ -24,37 +24,58 @@ export function ResumePreview({
   data,
   zoom = 1,
   compact = false,
-  appearance = "system"
+  appearance = "system",
+  fitContent = false
 }: {
   data: ResumeData;
   zoom?: number;
   compact?: boolean;
   appearance?: ResumePreviewAppearance;
+  fitContent?: boolean;
 }) {
   const theme = getTheme(data.themeId);
   const allowDark = appearance === "system";
+  const scaledWidth = 816 * zoom;
+  const scaledMinHeight = 1056 * zoom;
+  const paperClassName = cn(
+    "w-[816px] origin-top-left bg-white text-slate-900 transition",
+    !fitContent && "min-h-[1056px]",
+    allowDark && "dark:bg-slate-950 dark:text-slate-100",
+    compact ? "" : "shadow-soft",
+    templateFonts[data.templateId]
+  );
+  const paperContent = ["developer", "split"].includes(data.templateId) ? (
+    <SidebarResume data={data} accent={theme.color} allowDark={allowDark} fitContent={fitContent} inverted={data.templateId === "split"} />
+  ) : (
+    <StandardResume data={data} accent={theme.color} allowDark={allowDark} fitContent={fitContent} />
+  );
+
+  if (fitContent) {
+    return (
+      <article
+        data-resume-paper
+        className={paperClassName}
+        style={{ zoom } as CSSProperties}
+      >
+        {paperContent}
+      </article>
+    );
+  }
 
   return (
-    <article
-      data-resume-paper
-      className={cn(
-        "mx-auto min-h-[1056px] w-[816px] origin-top bg-white text-slate-900 transition",
-        allowDark && "dark:bg-slate-950 dark:text-slate-100",
-        compact ? "" : "shadow-soft",
-        templateFonts[data.templateId]
-      )}
-      style={{ transform: `scale(${zoom})`, marginBottom: `${(zoom - 1) * 1056}px` }}
-    >
-      {["developer", "split"].includes(data.templateId) ? (
-        <SidebarResume data={data} accent={theme.color} allowDark={allowDark} inverted={data.templateId === "split"} />
-      ) : (
-        <StandardResume data={data} accent={theme.color} allowDark={allowDark} />
-      )}
-    </article>
+    <div className="mx-auto" style={{ width: `${scaledWidth}px`, minHeight: `${scaledMinHeight}px` }}>
+      <article
+        data-resume-paper
+        className={paperClassName}
+        style={{ transform: `scale(${zoom})` }}
+      >
+        {paperContent}
+      </article>
+    </div>
   );
 }
 
-function StandardResume({ data, accent, allowDark }: { data: ResumeData; accent: string; allowDark: boolean }) {
+function StandardResume({ data, accent, allowDark, fitContent = false }: { data: ResumeData; accent: string; allowDark: boolean; fitContent?: boolean }) {
   const personal = data.personal;
   const nameStyle = colorStyle(data.textColors.name);
   const initialsStyle = getInitialsBoxStyle(data);
@@ -131,7 +152,7 @@ function StandardResume({ data, accent, allowDark }: { data: ResumeData; accent:
 
   if (data.templateId === "accent") {
     return (
-      <div className="relative min-h-[1056px] px-14 py-10" data-resume-fill-page>
+      <div className={cn("relative px-14 py-10", !fitContent && "min-h-[1056px]")} data-resume-fill-page={!fitContent || undefined}>
         <div className="absolute bottom-0 left-0 top-0 w-5" style={{ backgroundColor: accent }} />
         <header className="mb-4">
           <h1 className="text-4xl font-bold uppercase tracking-normal" style={{ color: data.textColors.name ?? accent }}>{personal.fullName || "Your Name"}</h1>
@@ -194,14 +215,14 @@ function StandardResume({ data, accent, allowDark }: { data: ResumeData; accent:
   );
 }
 
-function SidebarResume({ data, accent, allowDark, inverted = false }: { data: ResumeData; accent: string; allowDark: boolean; inverted?: boolean }) {
+function SidebarResume({ data, accent, allowDark, fitContent = false, inverted = false }: { data: ResumeData; accent: string; allowDark: boolean; fitContent?: boolean; inverted?: boolean }) {
   const personal = data.personal;
   const nameStyle = colorStyle(data.textColors.name);
   const initialsStyle = getInitialsBoxStyle(data, "#020617");
   const initialsPositionClass = getInitialsPositionClass(data);
 
   return (
-    <div className={`grid min-h-[1056px] ${inverted ? "grid-cols-[1fr_270px]" : "grid-cols-[260px_1fr]"}`} data-resume-fill-page>
+    <div className={cn("grid", !fitContent && "min-h-[1056px]", inverted ? "grid-cols-[1fr_270px]" : "grid-cols-[260px_1fr]")} data-resume-fill-page={!fitContent || undefined}>
       <aside className="px-8 py-9 text-white" style={{ backgroundColor: accent }}>
         <div className={cn("mb-8 flex", initialsPositionClass)}>
           <InitialsBox

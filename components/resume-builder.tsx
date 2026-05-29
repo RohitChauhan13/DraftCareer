@@ -288,10 +288,10 @@ async function downloadPdf() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background lg:fixed lg:inset-0 lg:flex lg:flex-col lg:overflow-hidden">
       {user && <MainNav user={user} showDonation={showDonation} />}
-      <header className="sticky top-[65px] z-20 border-b border-border bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <header className="sticky top-[65px] z-20 shrink-0 border-b border-border bg-surface/95 backdrop-blur lg:static">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-6">
           <div className="flex items-center gap-3">
             <Link className="grid h-10 w-10 place-items-center rounded-md border border-border bg-surface" href="/dashboard" title="Back">
               <ArrowLeft size={18} />
@@ -444,8 +444,8 @@ async function downloadPdf() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[420px_1fr]">
-        <motion.aside initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+      <div className="grid w-full gap-6 px-4 py-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(360px,34vw)_minmax(0,1fr)] lg:items-start lg:overflow-hidden lg:px-6 lg:pb-0">
+        <motion.aside initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-2">
           <Panel title="Template">
             <div className="mb-4">
               <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Theme</p>
@@ -769,8 +769,13 @@ async function downloadPdf() {
           </Collection>
         </motion.aside>
 
-        <section className="relative overflow-auto rounded-lg border border-border bg-muted/40 p-4">
-          <ResumePreview data={data} zoom={zoom} />
+        <section className="relative overflow-auto rounded-lg border border-border bg-muted/40 p-3 sm:p-4 lg:h-full lg:min-h-0">
+          <div className="lg:hidden">
+            <ResumePreview data={data} zoom={0.42} fitContent />
+          </div>
+          <div className="hidden lg:block">
+            <ResumePreview data={data} zoom={zoom} />
+          </div>
         </section>
       </div>
     </main>
