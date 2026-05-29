@@ -77,3 +77,10 @@ export const donationSettingsSchema = z.object({
 }).refine((value) => Object.keys(value).length > 0, {
   message: "Send at least one setting to update."
 });
+
+export const templateTagSettingsSchema = z.object({
+  settings: z.array(z.object({
+    templateId: z.enum(["modern", "ats", "minimal", "developer", "classic", "executive", "timeline", "compact", "editorial", "accent", "split", "mono"]),
+    tag: z.enum(["popular", "latest", "new", "trending", "recommended"]).nullable()
+  }))
+});

@@ -452,8 +452,12 @@ function getInitialsPositionClass(data: ResumeData) {
 }
 
 function getInitialsBoxStyle(data: ResumeData, defaultBoxColor?: string): CSSProperties {
+  const scale = Math.min(2.5, Math.max(1, data.initialsStyle.scale ?? 1));
+  const size = 64 * scale;
   const style: CSSProperties = {
-    borderRadius: data.initialsStyle.shape === "round" ? "9999px" : "0px"
+    borderRadius: data.initialsStyle.shape === "round" ? "9999px" : "0px",
+    height: `${size}px`,
+    width: `${size}px`
   };
 
   if (data.initialsStyle.letterColor) {

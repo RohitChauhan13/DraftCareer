@@ -12,6 +12,7 @@ export type TemplateId =
   | "split"
   | "mono";
 export type ThemeId = "purple" | "charcoal" | "taupe" | "navy" | "blue" | "teal" | "green" | "orange" | "red";
+export type TemplateTag = "popular" | "latest" | "new" | "trending" | "recommended";
 export type ResumeTextColorKey = "name" | "description" | "subtitle" | "meta";
 export type ResumeTextColors = Partial<Record<ResumeTextColorKey, string>>;
 export type ResumeInitialsShape = "square" | "round";
@@ -22,6 +23,7 @@ export type ResumeInitialsStyle = {
   shape?: ResumeInitialsShape;
   position?: ResumeInitialsPosition;
   image?: string;
+  scale?: number;
 };
 
 export type PersonalInfo = {

@@ -56,6 +56,10 @@ export function ResumeBuilder({
   const [draggingSkill, setDraggingSkill] = useState<string | null>(null);
   const [share, setShare] = useState<ResumeShareInfo>(initialShare ?? { isPublic: false, shareSlug: null });
   const [sharing, setSharing] = useState(false);
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropX, setCropX] = useState(0);
+  const [cropY, setCropY] = useState(0);
 
   useEffect(() => {
     if (resumeId) return;
@@ -205,11 +209,26 @@ async function downloadPdf() {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
-        updateInitialsStyle({ image: reader.result });
+        setCropImage(reader.result);
+        setCropZoom(1);
+        setCropX(0);
+        setCropY(0);
       }
     };
     reader.onerror = () => toast.error("Unable to load image");
     reader.readAsDataURL(file);
+  }
+
+  async function applyInitialsCrop() {
+    if (!cropImage) return;
+
+    try {
+      const croppedImage = await cropSquareImage(cropImage, { x: cropX, y: cropY, zoom: cropZoom });
+      updateInitialsStyle({ image: croppedImage });
+      setCropImage(null);
+    } catch {
+      toast.error("Unable to crop image");
+    }
   }
 
   async function persistResume() {
@@ -279,8 +298,11 @@ async function downloadPdf() {
             </Link>
             <div>
               <Input className="h-9 w-64 font-semibold" value={data.title} onChange={(event) => setData({ ...data, title: event.target.value })} />
-              <div className="mt-2 h-1.5 w-64 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+              <div className="mt-2 flex w-64 items-center gap-2">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+                </div>
+                <span className="w-9 text-right text-xs font-semibold text-muted-foreground">{progress}%</span>
               </div>
             </div>
           </div>
@@ -378,6 +400,43 @@ async function downloadPdf() {
         }}
         onConfirm={toggleShare}
       />
+
+      {cropImage && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="crop-title">
+          <div className="w-full max-w-md rounded-lg border border-border bg-surface text-surface-foreground shadow-soft">
+            <div className="flex items-center justify-between gap-3 border-b border-border p-4">
+              <h2 className="font-semibold" id="crop-title">Crop image</h2>
+              <button
+                className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted"
+                type="button"
+                aria-label="Close crop"
+                onClick={() => setCropImage(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4 p-4">
+              <div className="mx-auto h-56 w-56 overflow-hidden border border-border bg-muted" style={{ borderRadius: data.initialsStyle.shape === "round" ? "9999px" : "0px" }}>
+                <div
+                  className="h-full w-full bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url(${cropImage})`,
+                    backgroundPosition: `${50 + cropX}% ${50 + cropY}%`,
+                    backgroundSize: `${100 * cropZoom}%`
+                  }}
+                />
+              </div>
+              <CropSlider label="Zoom" max={3} min={1} step={0.05} value={cropZoom} onChange={setCropZoom} />
+              <CropSlider label="Horizontal" max={50} min={-50} step={1} value={cropX} onChange={setCropX} />
+              <CropSlider label="Vertical" max={50} min={-50} step={1} value={cropY} onChange={setCropY} />
+            </div>
+            <div className="flex justify-end gap-2 border-t border-border p-4">
+              <Button type="button" variant="secondary" onClick={() => setCropImage(null)}>Cancel</Button>
+              <Button type="button" onClick={applyInitialsCrop}>Use image</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="pointer-events-none fixed -left-[10000px] top-0 opacity-0" aria-hidden="true">
         <div ref={pdfRef}>
@@ -501,6 +560,26 @@ async function downloadPdf() {
                         {position}
                       </button>
                     ))}
+                  </div>
+                </div>
+                <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium">Box scale</p>
+                    <span className="text-xs font-semibold text-muted-foreground">{(data.initialsStyle.scale ?? 1).toFixed(2)}x</span>
+                  </div>
+                  <input
+                    aria-label="Initials box scale"
+                    className="w-full accent-primary"
+                    max={2.5}
+                    min={1}
+                    step={0.05}
+                    type="range"
+                    value={data.initialsStyle.scale ?? 1}
+                    onChange={(event) => updateInitialsStyle({ scale: Number(event.target.value) })}
+                  />
+                  <div className="mt-1 flex justify-between text-[11px] font-medium text-muted-foreground">
+                    <span>1x</span>
+                    <span>2.5x</span>
                   </div>
                 </div>
                 <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
@@ -730,6 +809,68 @@ function fitPdfPreviewToFullPages(root: HTMLElement) {
       node.style.minHeight = previousFillMinHeights[index] ?? "";
     });
   };
+}
+
+function cropSquareImage(source: string, crop: { x: number; y: number; zoom: number }) {
+  return new Promise<string>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const size = 512;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Canvas is unavailable"));
+        return;
+      }
+
+      const scale = Math.max(size / image.width, size / image.height) * crop.zoom;
+      const width = image.width * scale;
+      const height = image.height * scale;
+      const x = (size - width) * ((50 + crop.x) / 100);
+      const y = (size - height) * ((50 + crop.y) / 100);
+
+      context.drawImage(image, x, y, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
+    };
+    image.onerror = () => reject(new Error("Image failed to load"));
+    image.src = source;
+  });
+}
+
+function CropSlider({
+  label,
+  max,
+  min,
+  step,
+  value,
+  onChange
+}: {
+  label: string;
+  max: number;
+  min: number;
+  step: number;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="block">
+      <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+        <span className="font-medium">{label}</span>
+        <span className="text-xs font-semibold text-muted-foreground">{value.toFixed(step < 1 ? 2 : 0)}</span>
+      </div>
+      <input
+        className="w-full accent-primary"
+        max={max}
+        min={min}
+        step={step}
+        type="range"
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {

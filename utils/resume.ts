@@ -90,6 +90,9 @@ function normalizeInitialsStyle(value: unknown): ResumeData["initialsStyle"] {
   if (typeof input.image === "string" && /^data:image\/(png|jpe?g|webp);base64,/i.test(input.image)) {
     output.image = input.image;
   }
+  if (typeof input.scale === "number" && Number.isFinite(input.scale)) {
+    output.scale = Math.min(2.5, Math.max(1, input.scale));
+  }
   return output;
 }
 

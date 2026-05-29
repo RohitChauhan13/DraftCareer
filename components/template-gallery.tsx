@@ -7,7 +7,9 @@ import { ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
 import { resumeTemplates, resumeThemes } from "@/templates/resume-options";
-import type { ResumeData, TemplateId, ThemeId } from "@/types/resume";
+import type { ResumeData, TemplateId, TemplateTag, ThemeId } from "@/types/resume";
+import type { TemplateTagSetting } from "@/lib/template-tags";
+import { templateTagLabel } from "@/lib/template-tags";
 import { emptyResumeData, sectionsFromResumeData } from "@/utils/resume";
 import { MainNav } from "@/components/main-nav";
 
@@ -19,7 +21,8 @@ export function TemplateGallery({
   userRole,
   initialData,
   resumeId,
-  showDonation = true
+  showDonation = true,
+  templateTagSettings
 }: {
   userName: string;
   userEmail: string;
@@ -27,6 +30,7 @@ export function TemplateGallery({
   initialData?: ResumeData;
   resumeId?: string;
   showDonation?: boolean;
+  templateTagSettings: TemplateTagSetting[];
 }) {
   const router = useRouter();
   const [themeId, setThemeId] = useState<ThemeId>(initialData?.themeId ?? "red");
@@ -168,6 +172,7 @@ export function TemplateGallery({
               choosing={choosing === template.id}
               data={{ ...sampleBase, templateId: template.id, themeId }}
               key={template.id}
+              tag={templateTagSettings.find((setting) => setting.templateId === template.id)?.tag ?? null}
               templateId={template.id}
               onChoose={chooseTemplate}
             />
@@ -178,14 +183,12 @@ export function TemplateGallery({
   );
 }
 
-function TemplateCard({ data, templateId, choosing, onChoose }: { data: ResumeData; templateId: TemplateId; choosing: boolean; onChoose: (templateId: TemplateId) => void }) {
-  const template = resumeTemplates.find((item) => item.id === templateId);
-
+function TemplateCard({ data, templateId, tag, choosing, onChoose }: { data: ResumeData; templateId: TemplateId; tag: TemplateTag | null; choosing: boolean; onChoose: (templateId: TemplateId) => void }) {
   return (
     <div className="group relative overflow-hidden rounded-lg border border-border bg-surface shadow-soft">
-      {template?.popular && (
-        <div className="absolute right-5 top-5 z-10 rounded-md bg-sky-100 px-10 py-2 text-sm font-bold text-sky-950 shadow">
-          Popular
+      {tag && (
+        <div className={`absolute right-5 top-5 z-10 rounded-md px-10 py-2 text-sm font-bold shadow ${templateTagClassName(tag)}`}>
+          {templateTagLabel(tag)}
         </div>
       )}
       <div className="relative h-[560px] overflow-hidden bg-slate-50 dark:bg-slate-950">
@@ -204,4 +207,12 @@ function TemplateCard({ data, templateId, choosing, onChoose }: { data: ResumeDa
       </div>
     </div>
   );
+}
+
+function templateTagClassName(tag: TemplateTag) {
+  if (tag === "latest") return "bg-emerald-100 text-emerald-950";
+  if (tag === "new") return "bg-amber-100 text-amber-950";
+  if (tag === "trending") return "bg-rose-100 text-rose-950";
+  if (tag === "recommended") return "bg-violet-100 text-violet-950";
+  return "bg-sky-100 text-sky-950";
 }

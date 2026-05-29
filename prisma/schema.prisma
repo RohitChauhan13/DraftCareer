@@ -79,3 +79,11 @@ model DonationSettings {
 
   @@map("donation_settings")
 }
+
+model TemplateTagSetting {
+  templateId String   @id @map("template_id")
+  tag        String?
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("template_tag_settings")
+}

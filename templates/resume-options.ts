@@ -12,15 +12,15 @@ export const resumeThemes: { id: ThemeId; label: string; color: string; text: st
   { id: "red", label: "Red", color: "#d14550", text: "#ffffff" }
 ];
 
-export const resumeTemplates: { id: TemplateId; label: string; popular?: boolean }[] = [
+export const resumeTemplates: { id: TemplateId; label: string }[] = [
   { id: "modern", label: "Bold Header" },
-  { id: "ats", label: "ATS Classic", popular: true },
+  { id: "ats", label: "ATS Classic" },
   { id: "minimal", label: "Minimal Lines" },
-  { id: "developer", label: "Sidebar Pro", popular: true },
+  { id: "developer", label: "Sidebar Pro" },
   { id: "classic", label: "Centered Classic" },
   { id: "executive", label: "Executive Split" },
   { id: "timeline", label: "Timeline" },
-  { id: "compact", label: "Compact Pro", popular: true },
+  { id: "compact", label: "Compact Pro" },
   { id: "editorial", label: "Editorial" },
   { id: "accent", label: "Accent Rail" },
   { id: "split", label: "Two Column" },

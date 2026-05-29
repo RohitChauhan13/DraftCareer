@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { BadgeIndianRupee, CalendarDays, Mail, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { BadgeIndianRupee, CalendarDays, Mail, ShieldCheck, Tags, UserRound, type LucideIcon } from "lucide-react";
 import { DonationSettingsForm } from "@/components/donation-settings-form";
 import { MainNav } from "@/components/main-nav";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -45,14 +46,19 @@ export default async function AccountPage() {
         {donationSettings && (
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-md bg-accent text-accent-foreground">
-                  <BadgeIndianRupee size={22} />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-11 w-11 place-items-center rounded-md bg-accent text-accent-foreground">
+                    <BadgeIndianRupee size={22} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold">Donation Settings</h2>
+                    <p className="text-sm text-muted-foreground">Controls the public /donation page.</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold">Donation Settings</h2>
-                  <p className="text-sm text-muted-foreground">Controls the public /donation page.</p>
-                </div>
+                <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-medium transition hover:bg-muted/60" href="/account/template-tags">
+                  <Tags size={16} /> Template tag config
+                </Link>
               </div>
             </CardHeader>
             <CardContent>
