@@ -38,7 +38,7 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
 
         <div className="hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
-            <NavLink active={isActive(pathname, item.href)} href={item.href} key={item.label}>
+            <NavLink active={isActive(pathname, item.href, item.label)} href={item.href} key={item.label}>
               <item.icon size={16} /> {item.label}
             </NavLink>
           ))}
@@ -87,7 +87,7 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
           <div className="absolute right-0 top-12 w-[min(88vw,320px)] overflow-hidden rounded-lg border border-border bg-surface shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
             <div className="grid gap-1 p-2">
               {navItems.map((item) => (
-                <MobileNavLink active={isActive(pathname, item.href)} href={item.href} key={item.label}>
+                <MobileNavLink active={isActive(pathname, item.href, item.label)} href={item.href} key={item.label}>
                   <item.icon size={17} /> {item.label}
                 </MobileNavLink>
               ))}
@@ -136,7 +136,8 @@ function MobileNavLink({ active, children, href }: { active: boolean; children: 
   );
 }
 
-function isActive(pathname: string, href: string) {
+function isActive(pathname: string, href: string, label: string) {
+  if (href === "/login") return pathname === "/login" && label === "Login";
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
