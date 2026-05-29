@@ -1,3 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 const defaultWords = ["resumes", "templates", "details", "preview", "PDF"];
 
 export function WordLoader({
@@ -41,9 +46,17 @@ export function FullScreenLoader({
   label?: string;
   words?: string[];
 }) {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const loader = (
     <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/45 px-4 backdrop-blur-sm">
       <WordLoader label={label} words={words} />
     </div>
   );
+
+  return mounted ? createPortal(loader, document.body) : loader;
 }
