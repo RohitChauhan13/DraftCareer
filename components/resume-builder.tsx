@@ -29,7 +29,7 @@ const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultC
 ];
 const templatesWithInitials: TemplateId[] = ["modern", "developer", "split"];
 const initialsPositions = ["left", "center", "right"] as const;
-const maxInitialsImageBytes = 900 * 1024;
+const maxInitialsImageBytes = 5 * 1024 * 1024;
 
 export function ResumeBuilder({
   initialData,
@@ -46,6 +46,8 @@ export function ResumeBuilder({
 }) {
   const router = useRouter();
   const pdfRef = useRef<HTMLDivElement | null>(null);
+  const previewRef = useRef<HTMLElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [data, setData] = useState<ResumeData>(initialData);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -57,6 +59,8 @@ export function ResumeBuilder({
   const [share, setShare] = useState<ResumeShareInfo>(initialShare ?? { isPublic: false, shareSlug: null });
   const [sharing, setSharing] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropOriginalImage, setCropOriginalImage] = useState<string | null>(null);
+  const [initialsOriginalImage, setInitialsOriginalImage] = useState<string | null>(null);
   const [cropZoom, setCropZoom] = useState(1);
   const [cropX, setCropX] = useState(0);
   const [cropY, setCropY] = useState(0);
@@ -73,6 +77,17 @@ export function ResumeBuilder({
       sessionStorage.removeItem(draftKey);
     }
   }, [initialData.templateId, initialData.themeId, resumeId]);
+
+  useEffect(() => {
+    if (!cropImage) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [cropImage]);
   const progress = useMemo(() => {
     const checks = [
       data.personal.fullName,
@@ -202,14 +217,17 @@ async function downloadPdf() {
       return;
     }
     if (file.size > maxInitialsImageBytes) {
-      toast.error("Image must be under 900 KB");
+      toast.error("Image must be under 5 MB");
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
+        window.scrollTo({ left: 0, top: 0 });
+        previewRef.current?.scrollTo({ left: 0, top: 0 });
         setCropImage(reader.result);
+        setCropOriginalImage(reader.result);
         setCropZoom(1);
         setCropX(0);
         setCropY(0);
@@ -219,13 +237,32 @@ async function downloadPdf() {
     reader.readAsDataURL(file);
   }
 
+  function readjustInitialsImage() {
+    const sourceImage = initialsOriginalImage ?? data.initialsStyle.originalImage ?? data.initialsStyle.image;
+    if (!sourceImage) return;
+    window.scrollTo({ left: 0, top: 0 });
+    previewRef.current?.scrollTo({ left: 0, top: 0 });
+    setCropImage(sourceImage);
+    setCropOriginalImage(sourceImage);
+    setCropZoom(1);
+    setCropX(0);
+    setCropY(0);
+  }
+
   async function applyInitialsCrop() {
     if (!cropImage) return;
 
     try {
       const croppedImage = await cropSquareImage(cropImage, { x: cropX, y: cropY, zoom: cropZoom });
-      updateInitialsStyle({ image: croppedImage });
       setCropImage(null);
+      const originalImage = cropOriginalImage ?? data.initialsStyle.originalImage ?? cropImage;
+      setCropOriginalImage(null);
+      setInitialsOriginalImage(originalImage);
+      updateInitialsStyle({ image: croppedImage });
+      requestAnimationFrame(() => {
+        window.scrollTo({ left: 0, top: 0 });
+        previewRef.current?.scrollTo({ left: 0, top: 0 });
+      });
     } catch {
       toast.error("Unable to crop image");
     }
@@ -410,7 +447,10 @@ async function downloadPdf() {
                 className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted"
                 type="button"
                 aria-label="Close crop"
-                onClick={() => setCropImage(null)}
+                onClick={() => {
+                  setCropImage(null);
+                  setCropOriginalImage(null);
+                }}
               >
                 <X size={16} />
               </button>
@@ -431,7 +471,16 @@ async function downloadPdf() {
               <CropSlider label="Vertical" max={50} min={-50} step={1} value={cropY} onChange={setCropY} />
             </div>
             <div className="flex justify-end gap-2 border-t border-border p-4">
-              <Button type="button" variant="secondary" onClick={() => setCropImage(null)}>Cancel</Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setCropImage(null);
+                  setCropOriginalImage(null);
+                }}
+              >
+                Cancel
+              </Button>
               <Button type="button" onClick={applyInitialsCrop}>Use image</Button>
             </div>
           </div>
@@ -585,18 +634,27 @@ async function downloadPdf() {
                 <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
                   <p className="mb-2 text-sm font-medium">Image</p>
                   <div className="flex items-center gap-3">
-                    <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium transition hover:bg-muted">
+                    <button
+                      className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium transition hover:bg-muted"
+                      type="button"
+                      onClick={() => {
+                        window.scrollTo({ left: 0, top: 0 });
+                        previewRef.current?.scrollTo({ left: 0, top: 0 });
+                        imageInputRef.current?.click();
+                      }}
+                    >
                       Upload
-                      <input
-                        accept="image/png,image/jpeg,image/webp"
-                        className="sr-only"
-                        type="file"
-                        onChange={(event) => {
-                          uploadInitialsImage(event.target.files?.[0]);
-                          event.target.value = "";
-                        }}
-                      />
-                    </label>
+                    </button>
+                    <input
+                      ref={imageInputRef}
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      type="file"
+                      onChange={(event) => {
+                        uploadInitialsImage(event.target.files?.[0]);
+                        event.target.value = "";
+                      }}
+                    />
                     {data.initialsStyle.image && (
                       <>
                         <span
@@ -611,9 +669,19 @@ async function downloadPdf() {
                           size="sm"
                           type="button"
                           variant="ghost"
+                          onClick={readjustInitialsImage}
+                        >
+                          Re-adjust
+                        </Button>
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="ghost"
                           onClick={() => {
                             const nextStyle = { ...data.initialsStyle };
                             delete nextStyle.image;
+                            delete nextStyle.originalImage;
+                            setInitialsOriginalImage(null);
                             setData({ ...data, initialsStyle: nextStyle });
                           }}
                         >
@@ -769,7 +837,7 @@ async function downloadPdf() {
           </Collection>
         </motion.aside>
 
-        <section className="relative overflow-auto rounded-lg border border-border bg-muted/40 p-3 sm:p-4 lg:h-full lg:min-h-0">
+        <section ref={previewRef} className="relative overflow-auto rounded-lg border border-border bg-muted/40 p-3 sm:p-4 lg:h-full lg:min-h-0">
           <div className="lg:hidden">
             <ResumePreview data={data} zoom={0.42} fitContent />
           </div>

@@ -25,9 +25,11 @@ export const emptyResumeData: ResumeData = {
 };
 
 export function sectionsFromResumeData(data: ResumeData) {
+  const { originalImage, ...persistedInitialsStyle } = data.initialsStyle;
+
   return Object.entries({
     personal: data.personal,
-    metadata: { themeId: data.themeId, textColors: data.textColors, initialsStyle: data.initialsStyle },
+    metadata: { themeId: data.themeId, textColors: data.textColors, initialsStyle: persistedInitialsStyle },
     summary: data.summary,
     skills: data.skills,
     education: data.education,

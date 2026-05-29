@@ -23,6 +23,7 @@ export type ResumeInitialsStyle = {
   shape?: ResumeInitialsShape;
   position?: ResumeInitialsPosition;
   image?: string;
+  originalImage?: string;
   scale?: number;
 };
 

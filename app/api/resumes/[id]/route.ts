@@ -35,14 +35,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const existing = await prisma.resume.findFirst({ where: { id, userId } });
     if (!existing) return errorResponse(new Error("Resume not found."), 404);
 
-    const resume = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      await tx.resume.update({
+    await prisma.$transaction([
+      prisma.resume.update({
         where: { id },
         data: { title: payload.title, templateId: payload.templateId }
-      });
-
-      for (const section of payload.sections) {
-        await tx.resumeSection.upsert({
+      }),
+      ...payload.sections.map((section) => (
+        prisma.resumeSection.upsert({
           where: { resumeId_sectionType: { resumeId: id, sectionType: section.sectionType } },
           update: { contentJson: section.contentJson as Prisma.InputJsonValue },
           create: {
@@ -50,11 +49,11 @@ export async function PUT(request: NextRequest, { params }: Params) {
             sectionType: section.sectionType,
             contentJson: section.contentJson as Prisma.InputJsonValue
           }
-        });
-      }
+        })
+      ))
+    ]);
 
-      return tx.resume.findUniqueOrThrow({ where: { id }, include: { sections: true } });
-    });
+    const resume = await prisma.resume.findUniqueOrThrow({ where: { id }, include: { sections: true } });
 
     return ok({ resume });
   } catch (error) {
@@ -72,9 +71,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const existing = await prisma.resume.findFirst({ where: { id, userId } });
     if (!existing) return errorResponse(new Error("Resume not found."), 404);
 
-    const resume = await prisma.resume.update({
+    await prisma.$executeRaw`
+      UPDATE resumes
+      SET is_pinned = ${payload.isPinned}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id} AND user_id = ${userId}
+    `;
+
+    const resume = await prisma.resume.findUniqueOrThrow({
       where: { id },
-      data: { isPinned: payload.isPinned },
       include: { sections: true }
     });
 
