@@ -14,6 +14,15 @@ export type TemplateId =
 export type ThemeId = "purple" | "charcoal" | "taupe" | "navy" | "blue" | "teal" | "green" | "orange" | "red";
 export type ResumeTextColorKey = "name" | "description" | "subtitle" | "meta";
 export type ResumeTextColors = Partial<Record<ResumeTextColorKey, string>>;
+export type ResumeInitialsShape = "square" | "round";
+export type ResumeInitialsPosition = "left" | "center" | "right";
+export type ResumeInitialsStyle = {
+  letterColor?: string;
+  boxColor?: string;
+  shape?: ResumeInitialsShape;
+  position?: ResumeInitialsPosition;
+  image?: string;
+};
 
 export type PersonalInfo = {
   fullName: string;
@@ -66,6 +75,7 @@ export type ResumeData = {
   templateId: TemplateId;
   themeId: ThemeId;
   textColors: ResumeTextColors;
+  initialsStyle: ResumeInitialsStyle;
   personal: PersonalInfo;
   summary: string;
   skills: string[];

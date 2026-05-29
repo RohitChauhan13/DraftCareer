@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
-import type { ResumeData, ResumeTextColorKey } from "@/types/resume";
+import type { ResumeData, ResumeTextColorKey, TemplateId } from "@/types/resume";
 import { resumeThemes } from "@/templates/resume-options";
 import { sectionsFromResumeData } from "@/utils/resume";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,9 @@ const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultC
   { key: "subtitle", label: "Sub titles", defaultColor: "#111827" },
   { key: "meta", label: "Technology, date, links", defaultColor: "#6b7280" }
 ];
+const templatesWithInitials: TemplateId[] = ["modern", "developer", "split"];
+const initialsPositions = ["left", "center", "right"] as const;
+const maxInitialsImageBytes = 900 * 1024;
 
 export function ResumeBuilder({
   initialData,
@@ -60,7 +63,7 @@ export function ResumeBuilder({
     if (!stored) return;
     try {
       const draft = JSON.parse(stored) as ResumeData;
-      setData({ ...draft, textColors: draft.textColors ?? {}, templateId: initialData.templateId, themeId: initialData.themeId });
+      setData({ ...draft, textColors: draft.textColors ?? {}, initialsStyle: draft.initialsStyle ?? {}, templateId: initialData.templateId, themeId: initialData.themeId });
       sessionStorage.removeItem(draftKey);
     } catch {
       sessionStorage.removeItem(draftKey);
@@ -176,6 +179,37 @@ async function downloadPdf() {
     const clean = skill.trim();
     if (!clean || data.skills.includes(clean)) return;
     setData({ ...data, skills: [...data.skills, clean] });
+  }
+
+  function updateInitialsStyle(patch: Partial<ResumeData["initialsStyle"]>) {
+    setData({
+      ...data,
+      initialsStyle: {
+        ...data.initialsStyle,
+        ...patch
+      }
+    });
+  }
+
+  function uploadInitialsImage(file?: File) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choose an image file");
+      return;
+    }
+    if (file.size > maxInitialsImageBytes) {
+      toast.error("Image must be under 900 KB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        updateInitialsStyle({ image: reader.result });
+      }
+    };
+    reader.onerror = () => toast.error("Unable to load image");
+    reader.readAsDataURL(file);
   }
 
   async function persistResume() {
@@ -320,7 +354,7 @@ async function downloadPdf() {
         confirmLabel="Save & Download"
         description="Your latest edits and selected theme will be saved before generating the PDF."
         loading={exporting}
-        open={confirmDownload}
+        open={confirmDownload && !exporting}
         title="Save before downloading?"
         onCancel={() => {
           if (!exporting) setConfirmDownload(false);
@@ -413,6 +447,116 @@ async function downloadPdf() {
               <RotateCcw size={15} /> Reset defaults
             </Button>
           </Panel>
+
+          {templatesWithInitials.includes(data.templateId) && (
+            <Panel title="Initials">
+              <div className="grid gap-3">
+                <ColorField
+                  defaultColor="#ffffff"
+                  label="Letter"
+                  value={data.initialsStyle.letterColor}
+                  onChange={(color) => updateInitialsStyle({ letterColor: color })}
+                  onReset={() => {
+                    const nextStyle = { ...data.initialsStyle };
+                    delete nextStyle.letterColor;
+                    setData({ ...data, initialsStyle: nextStyle });
+                  }}
+                />
+                <ColorField
+                  defaultColor="#020617"
+                  label="Box"
+                  value={data.initialsStyle.boxColor}
+                  onChange={(color) => updateInitialsStyle({ boxColor: color })}
+                  onReset={() => {
+                    const nextStyle = { ...data.initialsStyle };
+                    delete nextStyle.boxColor;
+                    setData({ ...data, initialsStyle: nextStyle });
+                  }}
+                />
+                <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
+                  <p className="mb-2 text-sm font-medium">Box shape</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["square", "round"] as const).map((shape) => (
+                      <button
+                        className={`h-9 rounded-md border text-sm font-medium transition ${((data.initialsStyle.shape ?? "square") === shape) ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface hover:bg-muted"}`}
+                        key={shape}
+                        type="button"
+                        onClick={() => updateInitialsStyle({ shape })}
+                      >
+                        {shape === "square" ? "Square" : "Round"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
+                  <p className="mb-2 text-sm font-medium">Box position</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {initialsPositions.map((position) => (
+                      <button
+                        className={`h-9 rounded-md border text-sm font-medium capitalize transition ${((data.initialsStyle.position ?? "left") === position) ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface hover:bg-muted"}`}
+                        key={position}
+                        type="button"
+                        onClick={() => updateInitialsStyle({ position })}
+                      >
+                        {position}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
+                  <p className="mb-2 text-sm font-medium">Image</p>
+                  <div className="flex items-center gap-3">
+                    <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium transition hover:bg-muted">
+                      Upload
+                      <input
+                        accept="image/png,image/jpeg,image/webp"
+                        className="sr-only"
+                        type="file"
+                        onChange={(event) => {
+                          uploadInitialsImage(event.target.files?.[0]);
+                          event.target.value = "";
+                        }}
+                      />
+                    </label>
+                    {data.initialsStyle.image && (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          className="h-10 w-10 overflow-hidden border border-border bg-surface bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${data.initialsStyle.image})`,
+                            borderRadius: data.initialsStyle.shape === "round" ? "9999px" : "0px"
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            const nextStyle = { ...data.initialsStyle };
+                            delete nextStyle.image;
+                            setData({ ...data, initialsStyle: nextStyle });
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <Button
+                className="mt-4 w-full"
+                disabled={Object.keys(data.initialsStyle).length === 0}
+                size="sm"
+                type="button"
+                variant="secondary"
+                onClick={() => setData({ ...data, initialsStyle: {} })}
+              >
+                <RotateCcw size={15} /> Reset initials
+              </Button>
+            </Panel>
+          )}
 
           <Panel title="Personal Information">
             {getMissingPersonalFields().length > 0 && (

@@ -5,6 +5,7 @@ export const emptyResumeData: ResumeData = {
   templateId: "modern",
   themeId: "red",
   textColors: {},
+  initialsStyle: {},
   personal: {
     fullName: "",
     email: "",
@@ -26,7 +27,7 @@ export const emptyResumeData: ResumeData = {
 export function sectionsFromResumeData(data: ResumeData) {
   return Object.entries({
     personal: data.personal,
-    metadata: { themeId: data.themeId, textColors: data.textColors },
+    metadata: { themeId: data.themeId, textColors: data.textColors, initialsStyle: data.initialsStyle },
     summary: data.summary,
     skills: data.skills,
     education: data.education,
@@ -52,6 +53,7 @@ export function resumeDataFromSections(input: {
       : "modern",
     themeId: normalizeThemeId(byType.get("metadata")),
     textColors: normalizeTextColors(byType.get("metadata")),
+    initialsStyle: normalizeInitialsStyle(byType.get("metadata")),
     personal: { ...emptyResumeData.personal, ...(byType.get("personal") as object | undefined) },
     summary: typeof byType.get("summary") === "string" ? (byType.get("summary") as string) : "",
     skills: Array.isArray(byType.get("skills")) ? (byType.get("skills") as string[]) : [],
@@ -63,6 +65,32 @@ export function resumeDataFromSections(input: {
       : [],
     achievements: normalizeAchievements(byType.get("achievements"))
   };
+}
+
+function normalizeInitialsStyle(value: unknown): ResumeData["initialsStyle"] {
+  const style = value && typeof value === "object" && "initialsStyle" in value
+    ? (value as { initialsStyle?: unknown }).initialsStyle
+    : undefined;
+  if (!style || typeof style !== "object") return {};
+
+  const input = style as Record<string, unknown>;
+  const output: ResumeData["initialsStyle"] = {};
+  if (typeof input.letterColor === "string" && /^#[0-9a-f]{6}$/i.test(input.letterColor)) {
+    output.letterColor = input.letterColor;
+  }
+  if (typeof input.boxColor === "string" && /^#[0-9a-f]{6}$/i.test(input.boxColor)) {
+    output.boxColor = input.boxColor;
+  }
+  if (input.shape === "round" || input.shape === "square") {
+    output.shape = input.shape;
+  }
+  if (input.position === "left" || input.position === "center" || input.position === "right") {
+    output.position = input.position;
+  }
+  if (typeof input.image === "string" && /^data:image\/(png|jpe?g|webp);base64,/i.test(input.image)) {
+    output.image = input.image;
+  }
+  return output;
 }
 
 function normalizeThemeId(value: unknown): ResumeData["themeId"] {

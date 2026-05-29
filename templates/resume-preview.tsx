@@ -57,6 +57,8 @@ export function ResumePreview({
 function StandardResume({ data, accent, allowDark }: { data: ResumeData; accent: string; allowDark: boolean }) {
   const personal = data.personal;
   const nameStyle = colorStyle(data.textColors.name);
+  const initialsStyle = getInitialsBoxStyle(data);
+  const initialsPositionClass = getInitialsPositionClass(data);
 
   if (data.templateId === "classic") {
     return (
@@ -170,14 +172,18 @@ function StandardResume({ data, accent, allowDark }: { data: ResumeData; accent:
   return (
     <>
       <header>
-        <div className="grid grid-cols-[92px_1fr] items-center gap-5 px-10 py-7 text-white" style={{ backgroundColor: accent }}>
-          <div className="grid h-16 w-16 place-items-center border-2 border-white/85 text-xl font-bold leading-none">
-            <span className="leading-none">{getInitials(personal.fullName)}</span>
+        <div className="px-10 py-7 text-white" style={{ backgroundColor: accent }}>
+          <div className={cn("mb-6 flex", initialsPositionClass)}>
+            <InitialsBox
+              className="border-2 border-white/85"
+              data={data}
+              fontSize={22}
+              style={initialsStyle}
+              value={getInitials(personal.fullName)}
+            />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold uppercase leading-tight tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
-            <p className="mt-1 text-xs uppercase tracking-normal text-white/85">{data.title || "Resume"}</p>
-          </div>
+          <h1 className="text-3xl font-bold uppercase leading-tight tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
+          <p className="mt-1 text-xs uppercase tracking-normal text-white/85">{data.title || "Resume"}</p>
         </div>
         <ContactRow personal={personal} allowDark={allowDark} className={cn("mx-10 border-b border-slate-200 py-3", allowDark && "dark:border-slate-700")} />
       </header>
@@ -191,12 +197,19 @@ function StandardResume({ data, accent, allowDark }: { data: ResumeData; accent:
 function SidebarResume({ data, accent, allowDark, inverted = false }: { data: ResumeData; accent: string; allowDark: boolean; inverted?: boolean }) {
   const personal = data.personal;
   const nameStyle = colorStyle(data.textColors.name);
+  const initialsStyle = getInitialsBoxStyle(data, "#020617");
+  const initialsPositionClass = getInitialsPositionClass(data);
 
   return (
     <div className={`grid min-h-[1056px] ${inverted ? "grid-cols-[1fr_270px]" : "grid-cols-[260px_1fr]"}`} data-resume-fill-page>
       <aside className="px-8 py-9 text-white" style={{ backgroundColor: accent }}>
-        <div className="mb-8 grid h-16 w-16 place-items-center bg-slate-950 text-3xl font-bold leading-none">
-          <span className="leading-none">{getInitials(personal.fullName).slice(0, 1)}</span>
+        <div className={cn("mb-8 flex", initialsPositionClass)}>
+          <InitialsBox
+            data={data}
+            fontSize={34}
+            style={initialsStyle}
+            value={getInitials(personal.fullName).slice(0, 1)}
+          />
         </div>
         <h1 className="text-2xl font-bold leading-tight tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
         <ContactRow personal={personal} allowDark={false} className="mt-6 text-[10px] text-white/90" stacked />
@@ -387,6 +400,71 @@ function getInitials(value: string) {
     .map((part) => part[0]?.toUpperCase())
     .join("");
   return initials || "YN";
+}
+
+function InitialsBox({
+  className,
+  data,
+  fontSize,
+  style,
+  value
+}: {
+  className?: string;
+  data: ResumeData;
+  fontSize: number;
+  style: CSSProperties;
+  value: string;
+}) {
+  return (
+    <div className={cn("h-16 w-16 overflow-hidden text-white", className)} style={style}>
+      {data.initialsStyle.image ? (
+        <img alt="" className="h-full w-full object-cover" src={data.initialsStyle.image} />
+      ) : (
+        <InitialsSvg fontSize={fontSize} value={value} />
+      )}
+    </div>
+  );
+}
+
+function InitialsSvg({ value, fontSize }: { value: string; fontSize: number }) {
+  return (
+    <svg aria-hidden="true" className="h-full w-full overflow-visible" viewBox="0 0 64 64">
+      <text
+        dominantBaseline="central"
+        fill="currentColor"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize={fontSize}
+        fontWeight="700"
+        textAnchor="middle"
+        x="32"
+        y="32"
+      >
+        {value}
+      </text>
+    </svg>
+  );
+}
+
+function getInitialsPositionClass(data: ResumeData) {
+  if (data.initialsStyle.position === "center") return "justify-center";
+  if (data.initialsStyle.position === "right") return "justify-end";
+  return "justify-start";
+}
+
+function getInitialsBoxStyle(data: ResumeData, defaultBoxColor?: string): CSSProperties {
+  const style: CSSProperties = {
+    borderRadius: data.initialsStyle.shape === "round" ? "9999px" : "0px"
+  };
+
+  if (data.initialsStyle.letterColor) {
+    style.color = data.initialsStyle.letterColor;
+  }
+  if (data.initialsStyle.boxColor) {
+    style.backgroundColor = data.initialsStyle.boxColor;
+  } else if (defaultBoxColor) {
+    style.backgroundColor = defaultBoxColor;
+  }
+  return style;
 }
 
 function colorStyle(color?: string): CSSProperties | undefined {

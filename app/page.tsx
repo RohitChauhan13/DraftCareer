@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, FileText, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
+import { ArrowDown, CheckCircle2, FileText, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 import { MainNav } from "@/components/main-nav";
@@ -112,17 +112,15 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-[230px_1fr]">
                 <aside className="bg-slate-950 px-7 py-8 text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="grid aspect-square h-14 w-14 shrink-0 place-items-center rounded-full bg-emerald-400 text-xl font-black leading-none text-slate-950 ring-4 ring-white/10">
+                  <div className="text-center">
+                    <div className="mx-auto grid aspect-square h-20 w-20 place-items-center rounded-full bg-emerald-400 text-3xl font-black leading-none text-slate-950 ring-4 ring-white/10">
                       R
                     </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase text-emerald-300">Profile</p>
-                      <p className="mt-1 text-sm leading-5 text-slate-300">Polished, reliable web products.</p>
-                    </div>
+                    <p className="mt-3 text-xs font-bold uppercase text-emerald-300">Profile</p>
+                    <p className="mt-7 text-left leading-5 text-slate-300">Crafting sleek, scalable digital experiences.</p>
                   </div>
 
-                  <div className="mt-7 space-y-2.5 text-xs text-slate-300">
+                  <div className="mt-4 space-y-2.5 text-xs text-slate-300">
                     <p className="rounded-md bg-white/[0.08] px-3 py-2">Near RTO office Savali, Sangli - 416410</p>
                     <p className="rounded-md bg-white/[0.08] px-3 py-2">+91 7024756186</p>
                     <p className="break-all rounded-md bg-white/[0.08] px-3 py-2">rohitchauhan6232@gmail.com</p>
@@ -145,16 +143,15 @@ export default async function HomePage() {
                     </div>
                   </div>
                 </aside>
-                <div className="px-8 py-8">
+                <div className="bg-white px-8 py-8 dark:bg-slate-900">
                   <div className="flex items-start justify-between gap-5 border-b border-slate-200 pb-5 dark:border-slate-800">
                     <div>
                       <h2 className="text-4xl font-black leading-tight text-slate-950 dark:text-white">Rohit Chauhan</h2>
                       <p className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">Software Engineer</p>
                     </div>
-                    <div className="rounded-md bg-amber-100 px-4 py-3 text-right text-xs font-black text-amber-950 dark:bg-amber-300 dark:text-slate-950">
+                    <div className="inline-flex items-center gap-1.5 rounded-md bg-amber-100 px-4 py-3 text-xs font-black text-amber-950 dark:bg-amber-300 dark:text-slate-950">
                       PDF
-                      <br />
-                      Export
+                      <ArrowDown className="h-3.5 w-3.5 stroke-[3]" aria-hidden="true" />
                     </div>
                   </div>
 
