@@ -16,7 +16,10 @@ export default async function DashboardPage() {
   const resumes = await prisma.resume.findMany({
     where: { userId: user.id },
     include: { sections: true },
-    orderBy: { updatedAt: "desc" }
+    orderBy: [
+      { isPinned: "desc" },
+      { updatedAt: "desc" }
+    ]
   });
 
   return (

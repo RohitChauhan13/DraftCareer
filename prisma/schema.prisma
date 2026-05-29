@@ -43,6 +43,7 @@ model Resume {
   userId     String          @map("user_id")
   title      String
   templateId String          @default("modern") @map("template_id")
+  isPinned   Boolean         @default(false) @map("is_pinned")
   isPublic   Boolean         @default(false) @map("is_public")
   shareSlug  String?         @unique @map("share_slug")
   createdAt  DateTime        @default(now()) @map("created_at")
@@ -51,6 +52,7 @@ model Resume {
   sections   ResumeSection[]
 
   @@index([userId])
+  @@index([userId, isPinned, updatedAt])
   @@map("resumes")
 }
 

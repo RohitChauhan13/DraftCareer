@@ -12,7 +12,10 @@ export async function GET() {
 
     const resumes = await prisma.resume.findMany({
       where: { userId },
-      orderBy: { updatedAt: "desc" },
+      orderBy: [
+        { isPinned: "desc" },
+        { updatedAt: "desc" }
+      ],
       include: { sections: true }
     });
 

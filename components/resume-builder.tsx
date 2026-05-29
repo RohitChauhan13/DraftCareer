@@ -733,7 +733,22 @@ function fitPdfPreviewToFullPages(root: HTMLElement) {
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="rounded-lg border border-border bg-surface p-4"><h2 className="mb-3 font-semibold">{title}</h2>{children}</section>;
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <section className="rounded-lg border border-border bg-surface">
+      <button
+        aria-expanded={!collapsed}
+        className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
+        type="button"
+        onClick={() => setCollapsed((value) => !value)}
+      >
+        <h2 className="font-semibold">{title}</h2>
+        <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${collapsed ? "-rotate-90" : "rotate-0"}`} />
+      </button>
+      {!collapsed && <div className="px-4 pb-4">{children}</div>}
+    </section>
+  );
 }
 
 function Grid({ children }: { children: React.ReactNode }) {

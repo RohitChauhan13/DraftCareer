@@ -10,7 +10,6 @@ import { resumeTemplates, resumeThemes } from "@/templates/resume-options";
 import type { ResumeData, TemplateId, ThemeId } from "@/types/resume";
 import { emptyResumeData, sectionsFromResumeData } from "@/utils/resume";
 import { MainNav } from "@/components/main-nav";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 const draftKey = "resume-builder-draft";
 
@@ -137,7 +136,6 @@ export function TemplateGallery({
             </div>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <ThemeToggle />
             <div className="grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-2 rounded-md bg-muted px-3 py-3 sm:w-auto sm:px-4">
               <span className="font-semibold">Colors</span>
               <div className="flex min-w-0 flex-wrap gap-2">

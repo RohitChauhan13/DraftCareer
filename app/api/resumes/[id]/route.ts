@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, ok } from "@/lib/api";
 import { getSessionUserId } from "@/lib/auth";
-import { resumePayloadSchema } from "@/lib/validations";
+import { resumePayloadSchema, resumePinSchema } from "@/lib/validations";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -54,6 +54,28 @@ export async function PUT(request: NextRequest, { params }: Params) {
       }
 
       return tx.resume.findUniqueOrThrow({ where: { id }, include: { sections: true } });
+    });
+
+    return ok({ resume });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+export async function PATCH(request: NextRequest, { params }: Params) {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) return errorResponse(new Error("Unauthorized"), 401);
+
+    const { id } = await params;
+    const payload = resumePinSchema.parse(await request.json());
+    const existing = await prisma.resume.findFirst({ where: { id, userId } });
+    if (!existing) return errorResponse(new Error("Resume not found."), 404);
+
+    const resume = await prisma.resume.update({
+      where: { id },
+      data: { isPinned: payload.isPinned },
+      include: { sections: true }
     });
 
     return ok({ resume });

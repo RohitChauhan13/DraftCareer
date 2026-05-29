@@ -60,6 +60,10 @@ export const resumePayloadSchema = z.object({
   sections: z.array(resumeSectionSchema).default([])
 });
 
+export const resumePinSchema = z.object({
+  isPinned: z.boolean()
+});
+
 export const donationSettingsSchema = z.object({
   isPageVisible: z.boolean().optional(),
   upiId: z
