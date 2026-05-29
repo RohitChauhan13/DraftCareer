@@ -29,7 +29,8 @@ export default async function DashboardPage() {
       <section className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold">Saved resumes</h2>
+            <p className="text-sm font-semibold text-primary">Welcome back, {user.name}</p>
+            <h2 className="mt-1 text-xl font-semibold">Saved resumes</h2>
             <p className="text-sm text-muted-foreground">Create, edit, duplicate, and export resumes.</p>
           </div>
           <NavActionLink href="/builder/new" icon>Create Resume</NavActionLink>
