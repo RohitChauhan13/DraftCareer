@@ -60,11 +60,12 @@ export default async function StatsPage() {
   `;
 
   const userRows = rows.filter((row) => row.role !== "admin");
+  const activeCutoff = Date.now() - 5 * 60 * 1000;
   const totalUsers = userRows.length;
   const verifiedUsers = userRows.filter((row) => row.email_verified).length;
   const totalResumes = userRows.reduce((sum, row) => sum + Number(row.resume_count), 0);
   const publicResumes = userRows.reduce((sum, row) => sum + Number(row.public_resume_count), 0);
-  const activeUsers = userRows.filter((row) => Number(row.resume_count) > 0).length;
+  const activeUsers = userRows.filter((row) => row.last_seen_at && row.last_seen_at.getTime() >= activeCutoff).length;
   const tableRows = userRows.map((row) => {
     const inferredActivity = latestDate(row.updated_at, row.latest_resume_update);
     const lastActivity = row.last_seen_at ?? inferredActivity;
@@ -76,6 +77,7 @@ export default async function StatsPage() {
       emailVerified: row.email_verified,
       isBlocked: row.is_blocked,
       createdAt: row.created_at.toISOString(),
+      lastSeenAt: row.last_seen_at?.toISOString() ?? null,
       lastAppUseAt: lastActivity.toISOString(),
       resumeCount: Number(row.resume_count),
       publicResumeCount: Number(row.public_resume_count),

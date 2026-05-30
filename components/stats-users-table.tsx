@@ -14,6 +14,7 @@ export type StatsUserRow = {
   emailVerified: boolean;
   isBlocked: boolean;
   createdAt: string;
+  lastSeenAt: string | null;
   lastAppUseAt: string;
   resumeCount: number;
   publicResumeCount: number;
@@ -32,6 +33,7 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
 
   const filteredRows = useMemo(() => {
     const search = name.trim().toLowerCase();
+    const activeCutoff = Date.now() - 5 * 60 * 1000;
 
     const nextRows = rows.filter((row) => {
       const matchesName = !search || `${row.name} ${row.email}`.toLowerCase().includes(search);
@@ -40,7 +42,7 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
         (status === "verified" && row.emailVerified) ||
         (status === "unverified" && !row.emailVerified) ||
         (status === "blocked" && row.isBlocked) ||
-        (status === "active" && row.resumeCount > 0);
+        (status === "active" && row.lastSeenAt !== null && new Date(row.lastSeenAt).getTime() >= activeCutoff);
 
       return matchesName && matchesStatus;
     });
@@ -73,7 +75,7 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
       <CardHeader>
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold">Users</h2>
-          <p className="text-sm text-muted-foreground">Last app use is shown in India time and updates while signed-in users browse the app.</p>
+          <p className="text-sm text-muted-foreground">Active means seen in the last 5 minutes. Last app use is shown in India time.</p>
         </div>
       </CardHeader>
       <CardContent className="p-0">
