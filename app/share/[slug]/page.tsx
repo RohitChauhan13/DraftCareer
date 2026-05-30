@@ -97,9 +97,21 @@ export default async function PublicResumePage({ params }: { params: Promise<{ s
   return (
     <main className="min-h-screen bg-background text-foreground">
       <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} showDonation={donationSettings.isPageVisible} />
-      <section className="overflow-auto px-4 py-8">
-        <div className="mx-auto w-fit">
-          <ResumePreview data={data} zoom={1} appearance="light" />
+      <section className="overflow-auto px-3 py-6 sm:px-4 sm:py-8">
+        <div className="mx-auto w-fit min-[390px]:hidden">
+          <ResumePreview data={data} zoom={0.35} />
+        </div>
+        <div className="mx-auto hidden w-fit min-[390px]:block sm:hidden">
+          <ResumePreview data={data} zoom={0.42} />
+        </div>
+        <div className="mx-auto hidden w-fit sm:block md:hidden">
+          <ResumePreview data={data} zoom={0.72} />
+        </div>
+        <div className="mx-auto hidden w-fit md:block lg:hidden">
+          <ResumePreview data={data} zoom={0.9} />
+        </div>
+        <div className="mx-auto hidden w-fit lg:block">
+          <ResumePreview data={data} zoom={1} />
         </div>
       </section>
     </main>
