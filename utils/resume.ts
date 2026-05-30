@@ -79,6 +79,9 @@ function normalizeInitialsStyle(value: unknown): ResumeData["initialsStyle"] {
 
   const input = style as Record<string, unknown>;
   const output: ResumeData["initialsStyle"] = {};
+  if (typeof input.hidden === "boolean") {
+    output.hidden = input.hidden;
+  }
   if (typeof input.letterColor === "string" && /^#[0-9a-f]{6}$/i.test(input.letterColor)) {
     output.letterColor = input.letterColor;
   }

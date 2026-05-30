@@ -559,28 +559,47 @@ async function downloadPdf() {
           {templatesWithInitials.includes(data.templateId) && (
             <Panel title="Initials">
               <div className="grid gap-3">
-                <ColorField
-                  defaultColor="#ffffff"
-                  label="Letter"
-                  value={data.initialsStyle.letterColor}
-                  onChange={(color) => updateInitialsStyle({ letterColor: color })}
-                  onReset={() => {
-                    const nextStyle = { ...data.initialsStyle };
-                    delete nextStyle.letterColor;
-                    setData({ ...data, initialsStyle: nextStyle });
-                  }}
-                />
-                <ColorField
-                  defaultColor="#020617"
-                  label="Box"
-                  value={data.initialsStyle.boxColor}
-                  onChange={(color) => updateInitialsStyle({ boxColor: color })}
-                  onReset={() => {
-                    const nextStyle = { ...data.initialsStyle };
-                    delete nextStyle.boxColor;
-                    setData({ ...data, initialsStyle: nextStyle });
-                  }}
-                />
+                <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/35 px-3 py-2">
+                  <span className="text-sm font-medium">Show initials/photo box</span>
+                  <input
+                    checked={!data.initialsStyle.hidden}
+                    className="h-4 w-4 accent-primary"
+                    type="checkbox"
+                    onChange={(event) => updateInitialsStyle({ hidden: !event.target.checked })}
+                  />
+                </label>
+                {data.initialsStyle.hidden ? (
+                  <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                    Initials/photo box is hidden in the resume preview.
+                  </p>
+                ) : (
+                  <>
+                    {!data.initialsStyle.image && (
+                      <>
+                        <ColorField
+                          defaultColor="#ffffff"
+                          label="Letter"
+                          value={data.initialsStyle.letterColor}
+                          onChange={(color) => updateInitialsStyle({ letterColor: color })}
+                          onReset={() => {
+                            const nextStyle = { ...data.initialsStyle };
+                            delete nextStyle.letterColor;
+                            setData({ ...data, initialsStyle: nextStyle });
+                          }}
+                        />
+                        <ColorField
+                          defaultColor="#020617"
+                          label="Box"
+                          value={data.initialsStyle.boxColor}
+                          onChange={(color) => updateInitialsStyle({ boxColor: color })}
+                          onReset={() => {
+                            const nextStyle = { ...data.initialsStyle };
+                            delete nextStyle.boxColor;
+                            setData({ ...data, initialsStyle: nextStyle });
+                          }}
+                        />
+                      </>
+                    )}
                 <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
                   <p className="mb-2 text-sm font-medium">Box shape</p>
                   <div className="grid grid-cols-2 gap-2">
@@ -633,7 +652,7 @@ async function downloadPdf() {
                 </div>
                 <div className="rounded-md border border-border bg-muted/35 px-3 py-2">
                   <p className="mb-2 text-sm font-medium">Image</p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <button
                       className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium transition hover:bg-muted"
                       type="button"
@@ -691,17 +710,21 @@ async function downloadPdf() {
                     )}
                   </div>
                 </div>
+                  </>
+                )}
               </div>
-              <Button
-                className="mt-4 w-full"
-                disabled={Object.keys(data.initialsStyle).length === 0}
-                size="sm"
-                type="button"
-                variant="secondary"
-                onClick={() => setData({ ...data, initialsStyle: {} })}
-              >
-                <RotateCcw size={15} /> Reset initials
-              </Button>
+              {!data.initialsStyle.hidden && (
+                <Button
+                  className="mt-4 w-full"
+                  disabled={Object.keys(data.initialsStyle).length === 0}
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setData({ ...data, initialsStyle: {} })}
+                >
+                  <RotateCcw size={15} /> Reset initials
+                </Button>
+              )}
             </Panel>
           )}
 

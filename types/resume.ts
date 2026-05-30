@@ -19,6 +19,7 @@ export type ResumeSectionKey = "summary" | "skills" | "experience" | "projects" 
 export type ResumeInitialsShape = "square" | "round";
 export type ResumeInitialsPosition = "left" | "center" | "right";
 export type ResumeInitialsStyle = {
+  hidden?: boolean;
   letterColor?: string;
   boxColor?: string;
   shape?: ResumeInitialsShape;

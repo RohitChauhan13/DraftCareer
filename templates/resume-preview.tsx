@@ -194,15 +194,17 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
     <>
       <header>
         <div className="px-10 py-7 text-white" style={{ backgroundColor: accent }}>
-          <div className={cn("mb-6 flex", initialsPositionClass)}>
-            <InitialsBox
-              className="border-2 border-white/85"
-              data={data}
-              fontSize={22}
-              style={initialsStyle}
-              value={getInitials(personal.fullName)}
-            />
-          </div>
+          {!data.initialsStyle.hidden && (
+            <div className={cn("mb-6 flex", initialsPositionClass)}>
+              <InitialsBox
+                className="border-2 border-white/85"
+                data={data}
+                fontSize={22}
+                style={initialsStyle}
+                value={getInitials(personal.fullName)}
+              />
+            </div>
+          )}
           <h1 className="text-3xl font-bold uppercase leading-tight tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
           <p className="mt-1 text-xs uppercase tracking-normal text-white/85">{data.title || "Resume"}</p>
         </div>
@@ -224,14 +226,16 @@ function SidebarResume({ data, accent, allowDark, fitContent = false, inverted =
   return (
     <div className={cn("grid", !fitContent && "min-h-[1056px]", inverted ? "grid-cols-[1fr_270px]" : "grid-cols-[260px_1fr]")} data-resume-fill-page={!fitContent || undefined}>
       <aside className="px-8 py-9 text-white" style={{ backgroundColor: accent }}>
-        <div className={cn("mb-8 flex", initialsPositionClass)}>
-          <InitialsBox
-            data={data}
-            fontSize={34}
-            style={initialsStyle}
-            value={getInitials(personal.fullName).slice(0, 1)}
-          />
-        </div>
+        {!data.initialsStyle.hidden && (
+          <div className={cn("mb-8 flex", initialsPositionClass)}>
+            <InitialsBox
+              data={data}
+              fontSize={34}
+              style={initialsStyle}
+              value={getInitials(personal.fullName).slice(0, 1)}
+            />
+          </div>
+        )}
         <h1 className="text-2xl font-bold leading-tight tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
         <ContactRow personal={personal} allowDark={false} className="mt-6 text-[10px] text-white/90" stacked />
         {!isSectionHidden(data, "skills") && data.skills.length > 0 && (
