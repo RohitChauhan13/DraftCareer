@@ -72,12 +72,12 @@ export function ResumeBuilder({
     if (!stored) return;
     try {
       const draft = JSON.parse(stored) as ResumeData;
-      setData({ ...draft, textColors: draft.textColors ?? {}, hiddenSections: draft.hiddenSections ?? [], initialsStyle: draft.initialsStyle ?? {}, templateId: initialData.templateId, themeId: initialData.themeId });
+      setData({ ...draft, textColors: draft.textColors ?? {}, hiddenSections: draft.hiddenSections ?? [], initialsStyle: draft.initialsStyle ?? {}, templateId: initialData.templateId, themeId: initialData.themeId, themeColor: draft.themeColor ?? initialData.themeColor });
       sessionStorage.removeItem(draftKey);
     } catch {
       sessionStorage.removeItem(draftKey);
     }
-  }, [initialData.templateId, initialData.themeId, resumeId]);
+  }, [initialData.templateId, initialData.themeColor, initialData.themeId, resumeId]);
 
   useEffect(() => {
     if (!cropImage) return;
@@ -507,15 +507,24 @@ async function downloadPdf() {
                     key={theme.id}
                     style={{ backgroundColor: theme.color }}
                     title={theme.label}
-                    onClick={() => setData({ ...data, themeId: theme.id })}
+                    onClick={() => setData({ ...data, themeId: theme.id, themeColor: undefined })}
                   >
-                    {data.themeId === theme.id && (
+                    {!data.themeColor && data.themeId === theme.id && (
                       <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-blue-600">
                         <Check size={15} color={theme.text} />
                       </span>
                     )}
                   </button>
                 ))}
+                <label className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-surface shadow-sm" title="Custom color">
+                  <input
+                    aria-label="Choose custom theme color"
+                    className="h-6 w-6 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                    type="color"
+                    value={data.themeColor ?? resumeThemes.find((theme) => theme.id === data.themeId)?.color ?? "#d14550"}
+                    onChange={(event) => setData({ ...data, themeColor: event.target.value })}
+                  />
+                </label>
               </div>
             </div>
             <Button className="w-full" variant="secondary" onClick={changeTemplate} loading={saving} loadingText="Saving draft">

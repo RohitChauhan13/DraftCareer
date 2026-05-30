@@ -34,6 +34,7 @@ export function TemplateGallery({
 }) {
   const router = useRouter();
   const [themeId, setThemeId] = useState<ThemeId>(initialData?.themeId ?? "red");
+  const [themeColor, setThemeColor] = useState<string | undefined>(initialData?.themeColor);
   const [draft, setDraft] = useState<ResumeData | null>(initialData ?? null);
   const [choosing, setChoosing] = useState<TemplateId | null>(null);
 
@@ -45,6 +46,7 @@ export function TemplateGallery({
       const parsed = JSON.parse(stored) as ResumeData;
       setDraft({ ...parsed, textColors: parsed.textColors ?? {} });
       setThemeId(parsed.themeId);
+      setThemeColor(parsed.themeColor);
     } catch {
       sessionStorage.removeItem(draftKey);
     }
@@ -55,6 +57,7 @@ export function TemplateGallery({
     textColors: draft?.textColors ?? {},
     title: "Sales Resume",
     themeId,
+    themeColor,
     personal: {
       ...emptyResumeData.personal,
       ...(draft?.personal ?? {}),
@@ -93,15 +96,15 @@ export function TemplateGallery({
         description: ""
       }
     ]
-  }), [draft, themeId, userEmail, userName]);
+  }), [draft, themeColor, themeId, userEmail, userName]);
 
   async function chooseTemplate(templateId: TemplateId) {
-    const nextData = { ...(draft ?? sampleBase), templateId, themeId };
+    const nextData = { ...(draft ?? sampleBase), templateId, themeId, themeColor };
     setChoosing(templateId);
 
     if (!resumeId) {
       sessionStorage.setItem(draftKey, JSON.stringify(nextData));
-      router.push(`/builder/new?templateId=${templateId}&themeId=${themeId}`);
+      router.push(`/builder/new?templateId=${templateId}&themeId=${themeId}${themeColor ? `&themeColor=${encodeURIComponent(themeColor)}` : ""}`);
       return;
     }
 
@@ -151,15 +154,27 @@ export function TemplateGallery({
                     key={themeOption.id}
                     style={{ backgroundColor: themeOption.color }}
                     title={themeOption.label}
-                    onClick={() => setThemeId(themeOption.id)}
+                    onClick={() => {
+                      setThemeId(themeOption.id);
+                      setThemeColor(undefined);
+                    }}
                   >
-                    {themeId === themeOption.id && (
+                    {!themeColor && themeId === themeOption.id && (
                       <span className="grid h-7 w-7 place-items-center rounded-full border-2 border-blue-600">
                         <Check size={15} color={themeOption.text} />
                       </span>
                     )}
                   </button>
                 ))}
+                <label className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-surface shadow-sm" title="Custom color">
+                  <input
+                    aria-label="Choose custom theme color"
+                    className="h-6 w-6 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                    type="color"
+                    value={themeColor ?? resumeThemes.find((theme) => theme.id === themeId)?.color ?? "#d14550"}
+                    onChange={(event) => setThemeColor(event.target.value)}
+                  />
+                </label>
               </div>
             </div>
           </div>
@@ -173,7 +188,7 @@ export function TemplateGallery({
             .map((template) => (
             <TemplateCard
               choosing={choosing === template.id}
-              data={{ ...sampleBase, templateId: template.id, themeId }}
+              data={{ ...sampleBase, templateId: template.id, themeId, themeColor }}
               key={template.id}
               tag={templateTagSettings.find((setting) => setting.templateId === template.id)?.tag ?? null}
               templateId={template.id}

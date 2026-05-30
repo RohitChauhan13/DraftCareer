@@ -82,6 +82,7 @@ export type ResumeData = {
   title: string;
   templateId: TemplateId;
   themeId: ThemeId;
+  themeColor?: string;
   textColors: ResumeTextColors;
   hiddenSections?: ResumeSectionKey[];
   initialsStyle: ResumeInitialsStyle;

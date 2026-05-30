@@ -34,6 +34,7 @@ export function ResumePreview({
   fitContent?: boolean;
 }) {
   const theme = getTheme(data.themeId);
+  const accent = data.themeColor ?? theme.color;
   const allowDark = appearance === "system";
   const scaledWidth = 816 * zoom;
   const scaledMinHeight = 1056 * zoom;
@@ -46,9 +47,9 @@ export function ResumePreview({
   );
   const paperColorStyle = colorStyle(data.textColors.background, "backgroundColor");
   const paperContent = ["developer", "split"].includes(data.templateId) ? (
-    <SidebarResume data={data} accent={theme.color} allowDark={allowDark} fitContent={fitContent} inverted={data.templateId === "split"} />
+    <SidebarResume data={data} accent={accent} allowDark={allowDark} fitContent={fitContent} inverted={data.templateId === "split"} />
   ) : (
-    <StandardResume data={data} accent={theme.color} allowDark={allowDark} fitContent={fitContent} />
+    <StandardResume data={data} accent={accent} allowDark={allowDark} fitContent={fitContent} />
   );
 
   if (fitContent) {

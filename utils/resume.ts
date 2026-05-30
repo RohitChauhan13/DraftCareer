@@ -4,8 +4,9 @@ const resumeSectionKeys = ["summary", "skills", "experience", "projects", "educa
 
 export const emptyResumeData: ResumeData = {
   title: "Untitled Resume",
-  templateId: "modern",
-  themeId: "red",
+    templateId: "modern",
+    themeId: "red",
+  themeColor: undefined,
   textColors: {},
   hiddenSections: [],
   initialsStyle: {},
@@ -32,7 +33,7 @@ export function sectionsFromResumeData(data: ResumeData) {
 
   return Object.entries({
     personal: data.personal,
-    metadata: { themeId: data.themeId, textColors: data.textColors, hiddenSections: data.hiddenSections ?? [], initialsStyle: persistedInitialsStyle },
+    metadata: { themeId: data.themeId, themeColor: data.themeColor, textColors: data.textColors, hiddenSections: data.hiddenSections ?? [], initialsStyle: persistedInitialsStyle },
     summary: data.summary,
     skills: data.skills,
     education: data.education,
@@ -57,6 +58,7 @@ export function resumeDataFromSections(input: {
       ? (input.templateId as ResumeData["templateId"])
       : "modern",
     themeId: normalizeThemeId(byType.get("metadata")),
+    themeColor: normalizeThemeColor(byType.get("metadata")),
     textColors: normalizeTextColors(byType.get("metadata")),
     hiddenSections: normalizeHiddenSections(byType.get("metadata")),
     initialsStyle: normalizeInitialsStyle(byType.get("metadata")),
@@ -111,6 +113,16 @@ function normalizeThemeId(value: unknown): ResumeData["themeId"] {
   return typeof themeId === "string" && ["purple", "charcoal", "taupe", "navy", "blue", "teal", "green", "orange", "red"].includes(themeId)
     ? (themeId as ResumeData["themeId"])
     : "red";
+}
+
+function normalizeThemeColor(value: unknown): ResumeData["themeColor"] {
+  const themeColor = value && typeof value === "object" && "themeColor" in value
+    ? (value as { themeColor?: unknown }).themeColor
+    : undefined;
+
+  return typeof themeColor === "string" && /^#[0-9a-f]{6}$/i.test(themeColor)
+    ? themeColor
+    : undefined;
 }
 
 function normalizeTextColors(value: unknown): ResumeData["textColors"] {
