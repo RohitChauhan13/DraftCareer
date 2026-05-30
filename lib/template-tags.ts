@@ -1,4 +1,4 @@
-import type { TemplateId, TemplateTag } from "@/types/resume";
+import type { HardcodedTemplateId, TemplateTag } from "@/types/resume";
 import { prisma } from "@/lib/prisma";
 import { resumeTemplates } from "@/templates/resume-options";
 
@@ -11,16 +11,20 @@ export const templateTagOptions: { value: TemplateTag; label: string }[] = [
 ];
 
 export type TemplateTagSetting = {
-  templateId: TemplateId;
+  templateId: HardcodedTemplateId;
   tag: TemplateTag | null;
+  isVisible: boolean;
+  sortOrder: number;
 };
 
 type TemplateTagRow = {
   template_id: string;
   tag: string | null;
+  is_visible: boolean;
+  sort_order: number;
 };
 
-const defaultTags: Partial<Record<TemplateId, TemplateTag>> = {
+const defaultTags: Partial<Record<HardcodedTemplateId, TemplateTag>> = {
   ats: "popular",
   developer: "popular",
   compact: "popular"
@@ -32,14 +36,17 @@ const validTags = templateTagOptions.map((option) => option.value);
 export async function getTemplateTagSettings(): Promise<TemplateTagSetting[]> {
   const rows = await prisma.$queryRaw<TemplateTagRow[]>`
     SELECT template_id, tag
+    , is_visible, sort_order
     FROM template_tag_settings
   `;
-  const byTemplate = new Map(rows.map((row) => [row.template_id, row.tag]));
+  const byTemplate = new Map(rows.map((row) => [row.template_id, row]));
 
   return templateIds.map((templateId) => ({
     templateId,
-    tag: normalizeTemplateTag(byTemplate.get(templateId) ?? defaultTags[templateId] ?? null)
-  }));
+    tag: normalizeTemplateTag(byTemplate.get(templateId)?.tag ?? defaultTags[templateId] ?? null),
+    isVisible: byTemplate.get(templateId)?.is_visible ?? true,
+    sortOrder: byTemplate.get(templateId)?.sort_order ?? resumeTemplates.findIndex((template) => template.id === templateId)
+  })).sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 export async function updateTemplateTagSettings(settings: TemplateTagSetting[]) {
@@ -50,6 +57,11 @@ export async function updateTemplateTagSettings(settings: TemplateTagSetting[]) 
       ON CONFLICT (template_id) DO UPDATE SET
         tag = EXCLUDED.tag,
         updated_at = CURRENT_TIMESTAMP
+    `;
+    await prisma.$executeRaw`
+      UPDATE template_tag_settings
+      SET is_visible = ${setting.isVisible}, sort_order = ${setting.sortOrder}, updated_at = CURRENT_TIMESTAMP
+      WHERE template_id = ${setting.templateId}
     `;
   }
 

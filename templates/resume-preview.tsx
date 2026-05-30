@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
-import type { ResumeData, ResumeSectionKey, TemplateId } from "@/types/resume";
+import type { HardcodedTemplateId, ResumeData, ResumeSectionKey } from "@/types/resume";
 import { cn } from "@/lib/utils";
 import { getTheme } from "@/templates/resume-options";
 
-const templateFonts: Record<TemplateId, string> = {
+const templateFonts: Record<HardcodedTemplateId, string> = {
   modern: "font-sans",
   ats: "font-serif",
   minimal: "font-sans",
@@ -42,8 +42,9 @@ export function ResumePreview({
     !fitContent && "min-h-[1056px]",
     allowDark && "dark:bg-slate-950 dark:text-slate-100",
     compact ? "" : "shadow-soft",
-    templateFonts[data.templateId]
+    templateFonts[data.templateId as HardcodedTemplateId] ?? "font-sans"
   );
+  const paperColorStyle = colorStyle(data.textColors.background, "backgroundColor");
   const paperContent = ["developer", "split"].includes(data.templateId) ? (
     <SidebarResume data={data} accent={theme.color} allowDark={allowDark} fitContent={fitContent} inverted={data.templateId === "split"} />
   ) : (
@@ -55,7 +56,7 @@ export function ResumePreview({
       <article
         data-resume-paper
         className={paperClassName}
-        style={{ zoom } as CSSProperties}
+        style={{ ...paperColorStyle, zoom } as CSSProperties}
       >
         {paperContent}
       </article>
@@ -67,7 +68,7 @@ export function ResumePreview({
       <article
         data-resume-paper
         className={paperClassName}
-        style={{ transform: `scale(${zoom})` }}
+        style={{ ...paperColorStyle, transform: `scale(${zoom})` }}
       >
         {paperContent}
       </article>
@@ -500,6 +501,6 @@ function getInitialsBoxStyle(data: ResumeData, defaultBoxColor?: string): CSSPro
   return style;
 }
 
-function colorStyle(color?: string): CSSProperties | undefined {
-  return color ? { color } : undefined;
+function colorStyle(color?: string, property: "color" | "backgroundColor" = "color"): CSSProperties | undefined {
+  return color ? { [property]: color } : undefined;
 }

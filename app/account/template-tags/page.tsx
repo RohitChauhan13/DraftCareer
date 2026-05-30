@@ -31,8 +31,8 @@ export default async function TemplateTagsPage() {
                 <Tags size={21} />
               </div>
               <div>
-                <h1 className="text-lg font-semibold">Template Tag Config</h1>
-                <p className="text-sm text-muted-foreground">Set template badges shown on the template selection page.</p>
+                <h1 className="text-lg font-semibold">Template Config</h1>
+                <p className="text-sm text-muted-foreground">Show, hide, and tag hardcoded resume templates.</p>
               </div>
             </div>
           </CardHeader>

@@ -81,6 +81,8 @@ export const donationSettingsSchema = z.object({
 export const templateTagSettingsSchema = z.object({
   settings: z.array(z.object({
     templateId: z.enum(["modern", "ats", "minimal", "developer", "classic", "executive", "timeline", "compact", "editorial", "accent", "split", "mono"]),
-    tag: z.enum(["popular", "latest", "new", "trending", "recommended"]).nullable()
+    tag: z.enum(["popular", "latest", "new", "trending", "recommended"]).nullable(),
+    isVisible: z.boolean().default(true),
+    sortOrder: z.number().int().min(0).max(1000).default(0)
   }))
 });

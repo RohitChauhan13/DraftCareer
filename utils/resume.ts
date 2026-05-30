@@ -120,7 +120,7 @@ function normalizeTextColors(value: unknown): ResumeData["textColors"] {
   if (!colors || typeof colors !== "object") return {};
 
   const output: ResumeData["textColors"] = {};
-  for (const key of ["name", "description", "subtitle", "meta"] as const) {
+  for (const key of ["name", "description", "subtitle", "meta", "background"] as const) {
     const color = (colors as Record<string, unknown>)[key];
     if (typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color)) {
       output[key] = color;

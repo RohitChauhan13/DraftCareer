@@ -1,4 +1,4 @@
-export type TemplateId =
+export type HardcodedTemplateId =
   | "modern"
   | "ats"
   | "minimal"
@@ -11,9 +11,10 @@ export type TemplateId =
   | "accent"
   | "split"
   | "mono";
+export type TemplateId = HardcodedTemplateId;
 export type ThemeId = "purple" | "charcoal" | "taupe" | "navy" | "blue" | "teal" | "green" | "orange" | "red";
 export type TemplateTag = "popular" | "latest" | "new" | "trending" | "recommended";
-export type ResumeTextColorKey = "name" | "description" | "subtitle" | "meta";
+export type ResumeTextColorKey = "name" | "description" | "subtitle" | "meta" | "background";
 export type ResumeTextColors = Partial<Record<ResumeTextColorKey, string>>;
 export type ResumeSectionKey = "summary" | "skills" | "experience" | "projects" | "education" | "certifications" | "achievements";
 export type ResumeInitialsShape = "square" | "round";

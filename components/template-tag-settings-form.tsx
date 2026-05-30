@@ -16,9 +16,9 @@ export function TemplateTagSettingsForm({ initialSettings }: { initialSettings: 
   const [settings, setSettings] = useState(initialSettings);
   const [saving, setSaving] = useState(false);
 
-  function updateTag(templateId: TemplateTagSetting["templateId"], tag: TemplateTag | null) {
+  function updateSetting(templateId: TemplateTagSetting["templateId"], patch: Partial<TemplateTagSetting>) {
     setSettings((current) => current.map((setting) => (
-      setting.templateId === templateId ? { ...setting, tag } : setting
+      setting.templateId === templateId ? { ...setting, ...patch } : setting
     )));
   }
 
@@ -69,19 +69,28 @@ export function TemplateTagSettingsForm({ initialSettings }: { initialSettings: 
               <select
                 className="h-10 rounded-md border border-border bg-surface px-3 text-sm outline-none focus:ring-2 focus:ring-primary/25"
                 value={setting.tag ?? ""}
-                onChange={(event) => updateTag(setting.templateId, event.target.value ? event.target.value as TemplateTag : null)}
+                onChange={(event) => updateSetting(setting.templateId, { tag: event.target.value ? event.target.value as TemplateTag : null })}
               >
                 <option value="">No tag</option>
                 {templateTagOptions.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  checked={setting.isVisible}
+                  className="h-4 w-4 accent-primary"
+                  type="checkbox"
+                  onChange={(event) => updateSetting(setting.templateId, { isVisible: event.target.checked })}
+                />
+                Show in gallery
+              </label>
             </div>
           );
         })}
 
         <Button disabled={saving} type="submit">
-          <Save size={16} /> Save template tags
+          <Save size={16} /> Save template settings
         </Button>
       </form>
     </>

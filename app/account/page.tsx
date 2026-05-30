@@ -57,7 +57,7 @@ export default async function AccountPage() {
                   </div>
                 </div>
                 <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-medium transition hover:bg-muted/60" href="/account/template-tags">
-                  <Tags size={16} /> Template tag config
+                  <Tags size={16} /> Template config
                 </Link>
               </div>
             </CardHeader>

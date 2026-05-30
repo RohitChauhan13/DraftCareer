@@ -1,4 +1,4 @@
-import type { TemplateId, ThemeId } from "@/types/resume";
+import type { HardcodedTemplateId, ThemeId } from "@/types/resume";
 
 export const resumeThemes: { id: ThemeId; label: string; color: string; text: string }[] = [
   { id: "purple", label: "Purple", color: "#7c3aed", text: "#ffffff" },
@@ -12,7 +12,7 @@ export const resumeThemes: { id: ThemeId; label: string; color: string; text: st
   { id: "red", label: "Red", color: "#d14550", text: "#ffffff" }
 ];
 
-export const resumeTemplates: { id: TemplateId; label: string }[] = [
+export const resumeTemplates: { id: HardcodedTemplateId; label: string }[] = [
   { id: "modern", label: "Bold Header" },
   { id: "ats", label: "ATS Classic" },
   { id: "minimal", label: "Minimal Lines" },

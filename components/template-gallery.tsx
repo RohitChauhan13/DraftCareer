@@ -168,7 +168,9 @@ export function TemplateGallery({
 
       <section className="bg-gradient-to-b from-background via-background to-muted px-4 py-8">
         <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {resumeTemplates.map((template) => (
+          {resumeTemplates
+            .filter((template) => templateTagSettings.find((setting) => setting.templateId === template.id)?.isVisible ?? true)
+            .map((template) => (
             <TemplateCard
               choosing={choosing === template.id}
               data={{ ...sampleBase, templateId: template.id, themeId }}

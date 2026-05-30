@@ -25,7 +25,8 @@ const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultC
   { key: "name", label: "Name", defaultColor: "#111827" },
   { key: "description", label: "Description", defaultColor: "#374151" },
   { key: "subtitle", label: "Sub titles", defaultColor: "#111827" },
-  { key: "meta", label: "Technology, date, links", defaultColor: "#6b7280" }
+  { key: "meta", label: "Technology, date, links", defaultColor: "#6b7280" },
+  { key: "background", label: "Background", defaultColor: "#ffffff" }
 ];
 const templatesWithInitials: TemplateId[] = ["modern", "developer", "split"];
 const initialsPositions = ["left", "center", "right"] as const;
