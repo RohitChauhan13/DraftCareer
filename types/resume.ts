@@ -15,6 +15,7 @@ export type ThemeId = "purple" | "charcoal" | "taupe" | "navy" | "blue" | "teal"
 export type TemplateTag = "popular" | "latest" | "new" | "trending" | "recommended";
 export type ResumeTextColorKey = "name" | "description" | "subtitle" | "meta";
 export type ResumeTextColors = Partial<Record<ResumeTextColorKey, string>>;
+export type ResumeSectionKey = "summary" | "skills" | "experience" | "projects" | "education" | "certifications" | "achievements";
 export type ResumeInitialsShape = "square" | "round";
 export type ResumeInitialsPosition = "left" | "center" | "right";
 export type ResumeInitialsStyle = {
@@ -43,6 +44,7 @@ export type Education = {
   cgpa: string;
   startDate: string;
   endDate: string;
+  description: string;
 };
 
 export type Experience = {
@@ -66,6 +68,7 @@ export type Certification = {
   name: string;
   provider: string;
   date: string;
+  description: string;
 };
 
 export type Achievement = {
@@ -78,6 +81,7 @@ export type ResumeData = {
   templateId: TemplateId;
   themeId: ThemeId;
   textColors: ResumeTextColors;
+  hiddenSections?: ResumeSectionKey[];
   initialsStyle: ResumeInitialsStyle;
   personal: PersonalInfo;
   summary: string;

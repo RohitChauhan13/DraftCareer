@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
-import type { ResumeData, ResumeTextColorKey, TemplateId } from "@/types/resume";
+import type { ResumeData, ResumeSectionKey, ResumeTextColorKey, TemplateId } from "@/types/resume";
 import { resumeThemes } from "@/templates/resume-options";
 import { sectionsFromResumeData } from "@/utils/resume";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ export function ResumeBuilder({
     if (!stored) return;
     try {
       const draft = JSON.parse(stored) as ResumeData;
-      setData({ ...draft, textColors: draft.textColors ?? {}, initialsStyle: draft.initialsStyle ?? {}, templateId: initialData.templateId, themeId: initialData.themeId });
+      setData({ ...draft, textColors: draft.textColors ?? {}, hiddenSections: draft.hiddenSections ?? [], initialsStyle: draft.initialsStyle ?? {}, templateId: initialData.templateId, themeId: initialData.themeId });
       sessionStorage.removeItem(draftKey);
     } catch {
       sessionStorage.removeItem(draftKey);
@@ -724,7 +724,7 @@ async function downloadPdf() {
             </Grid>
           </Panel>
 
-          <Panel title={`Professional Summary (${data.summary.length}/600)`}>
+          <Panel title={`Professional Summary (${data.summary.length}/600)`} actions={<SectionVisibilityToggle hidden={isSectionHidden("summary")} sectionName="summary" onToggle={() => toggleSectionVisibility("summary")} />}>
             <Textarea maxLength={600} value={data.summary} onChange={(event) => setData({ ...data, summary: event.target.value })} placeholder="Impact-focused summary for the target role." />
             <div className="mt-2 flex flex-wrap gap-2">
               {["Frontend engineer with product instincts", "Backend engineer focused on reliable systems", "Full-stack developer shipping polished user experiences"].map((suggestion) => (
@@ -733,7 +733,7 @@ async function downloadPdf() {
             </div>
           </Panel>
 
-          <Panel title="Skills">
+          <Panel title="Skills" actions={<SectionVisibilityToggle hidden={isSectionHidden("skills")} sectionName="skills" onToggle={() => toggleSectionVisibility("skills")} />}>
             <form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); const input = event.currentTarget.elements.namedItem("skill") as HTMLInputElement; addSkill(input.value); input.value = ""; }}>
               <Input name="skill" placeholder="Add a skill" />
               <Button type="submit" size="icon"><Plus size={16} /></Button>
@@ -742,7 +742,7 @@ async function downloadPdf() {
               {skillSuggestions.map((skill) => <button className="rounded border border-border px-2 py-1 text-xs" key={skill} onClick={() => addSkill(skill)}>{skill}</button>)}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {data.skills.map((skill) => (
+              {data.skills.map((skill, index) => (
                 <div
                   className={`inline-flex items-center gap-1 rounded bg-primary px-2 py-1 text-xs text-white transition ${draggingSkill === skill ? "opacity-50" : ""}`}
                   draggable
@@ -758,7 +758,7 @@ async function downloadPdf() {
                   }}
                 >
                   <GripVertical size={13} className="cursor-grab" />
-                  <span>{skill}</span>
+                  <span>{index + 1}. {skill}</span>
                   <button
                     className="ml-1 grid h-4 w-4 place-items-center rounded hover:bg-white/20"
                     type="button"
@@ -772,67 +772,79 @@ async function downloadPdf() {
             </div>
           </Panel>
 
-          <Collection title="Experience" items={data.experience} addLabel="Add experience" onAdd={() => setData({ ...data, experience: [...data.experience, { company: "", role: "", startDate: "", endDate: "", current: false, description: "" }] })}>
+          <Collection title="Experience" items={data.experience} addLabel="Add experience" actions={<SectionVisibilityToggle hidden={isSectionHidden("experience")} sectionName="experience" onToggle={() => toggleSectionVisibility("experience")} />} onAdd={() => setData({ ...data, experience: [...data.experience, { company: "", role: "", startDate: "", endDate: "", current: false, description: "" }] })}>
             {data.experience.map((item, index) => (
-              <Grid key={index}>
-                <Input placeholder="Company" value={item.company} onChange={(e) => updateArray("experience", index, { company: e.target.value })} />
-                <Input placeholder="Role" value={item.role} onChange={(e) => updateArray("experience", index, { role: e.target.value })} />
-                <DateField label="Start month" value={item.startDate} onChange={(value) => updateArray("experience", index, { startDate: value })} />
-                <DateField label="End month" value={item.endDate} disabled={item.current} onChange={(value) => updateArray("experience", index, { endDate: value })} />
-                <label className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm">
-                  <input
-                    checked={item.current}
-                    className="h-4 w-4 accent-primary"
-                    type="checkbox"
-                    onChange={(e) => updateArray("experience", index, { current: e.target.checked, endDate: e.target.checked ? "" : item.endDate })}
-                  />
-                  Currently working here
-                </label>
-                <Textarea placeholder="Description" value={item.description} onChange={(e) => updateArray("experience", index, { description: e.target.value })} />
-              </Grid>
+              <CollectionItem key={index} title={`Experience ${index + 1}`} onRemove={() => removeArrayItem("experience", index)}>
+                <Grid>
+                  <Input placeholder="Company" value={item.company} onChange={(e) => updateArray("experience", index, { company: e.target.value })} />
+                  <Input placeholder="Role" value={item.role} onChange={(e) => updateArray("experience", index, { role: e.target.value })} />
+                  <DateField label="Start month" value={item.startDate} onChange={(value) => updateArray("experience", index, { startDate: value })} />
+                  <DateField label="End month" value={item.endDate} disabled={item.current} onChange={(value) => updateArray("experience", index, { endDate: value })} />
+                  <label className="flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm">
+                    <input
+                      checked={item.current}
+                      className="h-4 w-4 accent-primary"
+                      type="checkbox"
+                      onChange={(e) => updateArray("experience", index, { current: e.target.checked, endDate: e.target.checked ? "" : item.endDate })}
+                    />
+                    Currently working here
+                  </label>
+                  <Textarea placeholder="Description" value={item.description} onChange={(e) => updateArray("experience", index, { description: e.target.value })} />
+                </Grid>
+              </CollectionItem>
             ))}
           </Collection>
 
-          <Collection title="Projects" items={data.projects} addLabel="Add project" onAdd={() => setData({ ...data, projects: [...data.projects, { name: "", description: "", technologies: "", github: "", live: "" }] })}>
+          <Collection title="Projects" items={data.projects} addLabel="Add project" actions={<SectionVisibilityToggle hidden={isSectionHidden("projects")} sectionName="projects" onToggle={() => toggleSectionVisibility("projects")} />} onAdd={() => setData({ ...data, projects: [...data.projects, { name: "", description: "", technologies: "", github: "", live: "" }] })}>
             {data.projects.map((item, index) => (
-              <Grid key={index}>
-                <Input placeholder="Project name" value={item.name} onChange={(e) => updateArray("projects", index, { name: e.target.value })} />
-                <Textarea placeholder="Description" value={item.description} onChange={(e) => updateArray("projects", index, { description: e.target.value })} />
-                <Input placeholder="Technologies" value={item.technologies} onChange={(e) => updateArray("projects", index, { technologies: e.target.value })} />
-                <Input placeholder="GitHub link" value={item.github} onChange={(e) => updateArray("projects", index, { github: e.target.value })} />
-                <Input placeholder="Live link" value={item.live} onChange={(e) => updateArray("projects", index, { live: e.target.value })} />
-              </Grid>
+              <CollectionItem key={index} title={`Project ${index + 1}`} onRemove={() => removeArrayItem("projects", index)}>
+                <Grid>
+                  <Input placeholder="Project name" value={item.name} onChange={(e) => updateArray("projects", index, { name: e.target.value })} />
+                  <Textarea placeholder="Description" value={item.description} onChange={(e) => updateArray("projects", index, { description: e.target.value })} />
+                  <Input placeholder="Technologies" value={item.technologies} onChange={(e) => updateArray("projects", index, { technologies: e.target.value })} />
+                  <Input placeholder="GitHub link" value={item.github} onChange={(e) => updateArray("projects", index, { github: e.target.value })} />
+                  <Input placeholder="Live link" value={item.live} onChange={(e) => updateArray("projects", index, { live: e.target.value })} />
+                </Grid>
+              </CollectionItem>
             ))}
           </Collection>
 
-          <Collection title="Education" items={data.education} addLabel="Add education" onAdd={() => setData({ ...data, education: [...data.education, { college: "", degree: "", cgpa: "", startDate: "", endDate: "" }] })}>
+          <Collection title="Education" items={data.education} addLabel="Add education" actions={<SectionVisibilityToggle hidden={isSectionHidden("education")} sectionName="education" onToggle={() => toggleSectionVisibility("education")} />} onAdd={() => setData({ ...data, education: [...data.education, { college: "", degree: "", cgpa: "", startDate: "", endDate: "", description: "" }] })}>
             {data.education.map((item, index) => (
-              <Grid key={index}>
-                <Input placeholder="College" value={item.college} onChange={(e) => updateArray("education", index, { college: e.target.value })} />
-                <Input placeholder="Degree" value={item.degree} onChange={(e) => updateArray("education", index, { degree: e.target.value })} />
-                <Input placeholder="CGPA" value={item.cgpa} onChange={(e) => updateArray("education", index, { cgpa: e.target.value })} />
-                <DateField label="Start month" value={item.startDate} onChange={(value) => updateArray("education", index, { startDate: value })} />
-                <DateField label="End month" value={item.endDate} onChange={(value) => updateArray("education", index, { endDate: value })} />
-              </Grid>
+              <CollectionItem key={index} title={`Education ${index + 1}`} onRemove={() => removeArrayItem("education", index)}>
+                <Grid>
+                  <Input placeholder="College" value={item.college} onChange={(e) => updateArray("education", index, { college: e.target.value })} />
+                  <Input placeholder="Degree" value={item.degree} onChange={(e) => updateArray("education", index, { degree: e.target.value })} />
+                  <Input placeholder="CGPA" value={item.cgpa} onChange={(e) => updateArray("education", index, { cgpa: e.target.value })} />
+                  <DateField label="Start month" value={item.startDate} onChange={(value) => updateArray("education", index, { startDate: value })} />
+                  <DateField label="End month" value={item.endDate} onChange={(value) => updateArray("education", index, { endDate: value })} />
+                  <Textarea placeholder="Description" rows={3} value={item.description} onChange={(e) => updateArray("education", index, { description: e.target.value })} />
+                </Grid>
+              </CollectionItem>
             ))}
           </Collection>
 
-          <Collection title="Certifications" items={data.certifications} addLabel="Add certification" onAdd={() => setData({ ...data, certifications: [...data.certifications, { name: "", provider: "", date: "" }] })}>
+          <Collection title="Certifications" items={data.certifications} addLabel="Add certification" actions={<SectionVisibilityToggle hidden={isSectionHidden("certifications")} sectionName="certifications" onToggle={() => toggleSectionVisibility("certifications")} />} onAdd={() => setData({ ...data, certifications: [...data.certifications, { name: "", provider: "", date: "", description: "" }] })}>
             {data.certifications.map((item, index) => (
-              <Grid key={index}>
-                <Input placeholder="Certification name" value={item.name} onChange={(e) => updateArray("certifications", index, { name: e.target.value })} />
-                <Input placeholder="Provider" value={item.provider} onChange={(e) => updateArray("certifications", index, { provider: e.target.value })} />
-                <DateField label="Certification month" value={item.date} onChange={(value) => updateArray("certifications", index, { date: value })} />
-              </Grid>
+              <CollectionItem key={index} title={`Certification ${index + 1}`} onRemove={() => removeArrayItem("certifications", index)}>
+                <Grid>
+                  <Input placeholder="Certification name" value={item.name} onChange={(e) => updateArray("certifications", index, { name: e.target.value })} />
+                  <Input placeholder="Provider" value={item.provider} onChange={(e) => updateArray("certifications", index, { provider: e.target.value })} />
+                  <DateField label="Certification month" value={item.date} onChange={(value) => updateArray("certifications", index, { date: value })} />
+                  <Textarea placeholder="Description" rows={3} value={item.description} onChange={(e) => updateArray("certifications", index, { description: e.target.value })} />
+                </Grid>
+              </CollectionItem>
             ))}
           </Collection>
 
-          <Collection title="Achievements" items={data.achievements} addLabel="Add achievement" onAdd={() => setData({ ...data, achievements: [...data.achievements, { title: "", description: "" }] })}>
+          <Collection title="Achievements" items={data.achievements} addLabel="Add achievement" actions={<SectionVisibilityToggle hidden={isSectionHidden("achievements")} sectionName="achievements" onToggle={() => toggleSectionVisibility("achievements")} />} onAdd={() => setData({ ...data, achievements: [...data.achievements, { title: "", description: "" }] })}>
             {data.achievements.map((item, index) => (
-              <Grid key={index}>
-                <Input placeholder="Achievement title" value={item.title} onChange={(e) => updateArray("achievements", index, { title: e.target.value })} />
-                <Textarea placeholder="Achievement description" value={item.description} onChange={(e) => updateArray("achievements", index, { description: e.target.value })} />
-              </Grid>
+              <CollectionItem key={index} title={`Achievement ${index + 1}`} onRemove={() => removeArrayItem("achievements", index)}>
+                <Grid>
+                  <Input placeholder="Achievement title" value={item.title} onChange={(e) => updateArray("achievements", index, { title: e.target.value })} />
+                  <Textarea placeholder="Achievement description" value={item.description} onChange={(e) => updateArray("achievements", index, { description: e.target.value })} />
+                </Grid>
+              </CollectionItem>
             ))}
           </Collection>
         </motion.aside>
@@ -853,6 +865,24 @@ async function downloadPdf() {
     const next = [...data[key]] as ResumeData[K];
     next[index] = { ...next[index], ...patch };
     setData({ ...data, [key]: next });
+  }
+
+  function removeArrayItem<K extends "experience" | "projects" | "education" | "certifications" | "achievements">(key: K, index: number) {
+    setData({ ...data, [key]: data[key].filter((_, itemIndex) => itemIndex !== index) });
+  }
+
+  function isSectionHidden(section: ResumeSectionKey) {
+    return (data.hiddenSections ?? []).includes(section);
+  }
+
+  function toggleSectionVisibility(section: ResumeSectionKey) {
+    const hiddenSections = data.hiddenSections ?? [];
+    setData({
+      ...data,
+      hiddenSections: hiddenSections.includes(section)
+        ? hiddenSections.filter((item) => item !== section)
+        : [...hiddenSections, section]
+    });
   }
 }
 
@@ -946,20 +976,23 @@ function CropSlider({
   );
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+function Panel({ title, children, actions }: { title: string; children: React.ReactNode; actions?: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <section className="rounded-lg border border-border bg-surface">
-      <button
-        aria-expanded={!collapsed}
-        className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
-        type="button"
-        onClick={() => setCollapsed((value) => !value)}
-      >
-        <h2 className="font-semibold">{title}</h2>
-        <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${collapsed ? "-rotate-90" : "rotate-0"}`} />
-      </button>
+      <div className="flex items-center gap-2 px-4 py-4">
+        <button
+          aria-expanded={!collapsed}
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+          type="button"
+          onClick={() => setCollapsed((value) => !value)}
+        >
+          <h2 className="min-w-0 truncate font-semibold">{title}</h2>
+          <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${collapsed ? "-rotate-90" : "rotate-0"}`} />
+        </button>
+        {actions}
+      </div>
       {!collapsed && <div className="px-4 pb-4">{children}</div>}
     </section>
   );
@@ -969,9 +1002,41 @@ function Grid({ children }: { children: React.ReactNode }) {
   return <div className="grid gap-3">{children}</div>;
 }
 
-function Collection<T>({ title, children, onAdd, addLabel }: { title: string; items: T[]; children: React.ReactNode; onAdd: () => void; addLabel: string }) {
+function CollectionItem({ title, children, onRemove }: { title: string; children: React.ReactNode; onRemove: () => void }) {
   return (
-    <Panel title={title}>
+    <div className="overflow-hidden rounded-lg border border-border bg-muted/30">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-surface px-3 py-2">
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <button
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+          type="button"
+          title={`Remove ${title}`}
+          onClick={onRemove}
+        >
+          <X size={16} />
+        </button>
+      </div>
+      <div className="p-3">{children}</div>
+    </div>
+  );
+}
+
+function SectionVisibilityToggle({ hidden, sectionName, onToggle }: { hidden: boolean; sectionName: string; onToggle: () => void }) {
+  return (
+    <button
+      className={`grid h-8 w-8 shrink-0 place-items-center rounded-md border transition ${hidden ? "border-amber-300 bg-amber-50 text-amber-700" : "border-border text-muted-foreground hover:bg-muted"}`}
+      type="button"
+      title={`${hidden ? "Show" : "Hide"} ${sectionName} section`}
+      onClick={onToggle}
+    >
+      {hidden ? <EyeOff size={16} /> : <Eye size={16} />}
+    </button>
+  );
+}
+
+function Collection<T>({ title, children, onAdd, addLabel, actions }: { title: string; items: T[]; children: React.ReactNode; onAdd: () => void; addLabel: string; actions?: React.ReactNode }) {
+  return (
+    <Panel title={title} actions={actions}>
       <div className="space-y-4">{children}</div>
       <Button className="mt-3" variant="secondary" onClick={onAdd}><Plus size={16} /> {addLabel}</Button>
     </Panel>

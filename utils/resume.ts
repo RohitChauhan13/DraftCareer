@@ -1,10 +1,13 @@
 import type { ResumeData } from "@/types/resume";
 
+const resumeSectionKeys = ["summary", "skills", "experience", "projects", "education", "certifications", "achievements"] as const;
+
 export const emptyResumeData: ResumeData = {
   title: "Untitled Resume",
   templateId: "modern",
   themeId: "red",
   textColors: {},
+  hiddenSections: [],
   initialsStyle: {},
   personal: {
     fullName: "",
@@ -29,7 +32,7 @@ export function sectionsFromResumeData(data: ResumeData) {
 
   return Object.entries({
     personal: data.personal,
-    metadata: { themeId: data.themeId, textColors: data.textColors, initialsStyle: persistedInitialsStyle },
+    metadata: { themeId: data.themeId, textColors: data.textColors, hiddenSections: data.hiddenSections ?? [], initialsStyle: persistedInitialsStyle },
     summary: data.summary,
     skills: data.skills,
     education: data.education,
@@ -55,16 +58,15 @@ export function resumeDataFromSections(input: {
       : "modern",
     themeId: normalizeThemeId(byType.get("metadata")),
     textColors: normalizeTextColors(byType.get("metadata")),
+    hiddenSections: normalizeHiddenSections(byType.get("metadata")),
     initialsStyle: normalizeInitialsStyle(byType.get("metadata")),
     personal: { ...emptyResumeData.personal, ...(byType.get("personal") as object | undefined) },
     summary: typeof byType.get("summary") === "string" ? (byType.get("summary") as string) : "",
     skills: Array.isArray(byType.get("skills")) ? (byType.get("skills") as string[]) : [],
-    education: Array.isArray(byType.get("education")) ? (byType.get("education") as ResumeData["education"]) : [],
+    education: normalizeEducation(byType.get("education")),
     experience: normalizeExperience(byType.get("experience")),
     projects: Array.isArray(byType.get("projects")) ? (byType.get("projects") as ResumeData["projects"]) : [],
-    certifications: Array.isArray(byType.get("certifications"))
-      ? (byType.get("certifications") as ResumeData["certifications"])
-      : [],
+    certifications: normalizeCertifications(byType.get("certifications")),
     achievements: normalizeAchievements(byType.get("achievements"))
   };
 }
@@ -124,6 +126,17 @@ function normalizeTextColors(value: unknown): ResumeData["textColors"] {
   return output;
 }
 
+function normalizeHiddenSections(value: unknown): ResumeData["hiddenSections"] {
+  const hiddenSections = value && typeof value === "object" && "hiddenSections" in value
+    ? (value as { hiddenSections?: unknown }).hiddenSections
+    : undefined;
+  if (!Array.isArray(hiddenSections)) return [];
+
+  return hiddenSections.filter((section): section is NonNullable<ResumeData["hiddenSections"]>[number] => (
+    typeof section === "string" && resumeSectionKeys.includes(section as typeof resumeSectionKeys[number])
+  ));
+}
+
 function normalizeExperience(value: unknown): ResumeData["experience"] {
   if (!Array.isArray(value)) return [];
 
@@ -140,6 +153,42 @@ function normalizeExperience(value: unknown): ResumeData["experience"] {
       description: typeof experience.description === "string" ? experience.description : ""
     };
   });
+}
+
+function normalizeEducation(value: unknown): ResumeData["education"] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      const education = item && typeof item === "object" ? item as Record<string, unknown> : {};
+
+      return {
+        college: typeof education.college === "string" ? education.college : "",
+        degree: typeof education.degree === "string" ? education.degree : "",
+        cgpa: typeof education.cgpa === "string" ? education.cgpa : "",
+        startDate: typeof education.startDate === "string" ? education.startDate : "",
+        endDate: typeof education.endDate === "string" ? education.endDate : "",
+        description: typeof education.description === "string" ? education.description : ""
+      };
+    })
+    .filter((item) => item.college || item.degree || item.cgpa || item.startDate || item.endDate || item.description);
+}
+
+function normalizeCertifications(value: unknown): ResumeData["certifications"] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      const certification = item && typeof item === "object" ? item as Record<string, unknown> : {};
+
+      return {
+        name: typeof certification.name === "string" ? certification.name : "",
+        provider: typeof certification.provider === "string" ? certification.provider : "",
+        date: typeof certification.date === "string" ? certification.date : "",
+        description: typeof certification.description === "string" ? certification.description : ""
+      };
+    })
+    .filter((item) => item.name || item.provider || item.date || item.description);
 }
 
 function normalizeAchievements(value: unknown): ResumeData["achievements"] {

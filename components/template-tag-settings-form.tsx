@@ -116,7 +116,8 @@ function createTemplatePreviewData(templateId: TemplateId): ResumeData {
       degree: "BCA",
       cgpa: "",
       startDate: "2022-01",
-      endDate: "2025-01"
+      endDate: "2025-01",
+      description: ""
     }]
   };
 }

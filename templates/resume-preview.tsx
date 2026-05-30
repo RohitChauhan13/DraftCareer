@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ResumeData, TemplateId } from "@/types/resume";
+import type { ResumeData, ResumeSectionKey, TemplateId } from "@/types/resume";
 import { cn } from "@/lib/utils";
 import { getTheme } from "@/templates/resume-options";
 
@@ -234,7 +234,7 @@ function SidebarResume({ data, accent, allowDark, fitContent = false, inverted =
         </div>
         <h1 className="text-2xl font-bold leading-tight tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
         <ContactRow personal={personal} allowDark={false} className="mt-6 text-[10px] text-white/90" stacked />
-        {data.skills.length > 0 && (
+        {!isSectionHidden(data, "skills") && data.skills.length > 0 && (
           <section className="mt-8">
             <h2 className="mb-3 text-xs font-bold uppercase">Skills</h2>
             <div className="space-y-1 text-[11px] leading-5">
@@ -276,15 +276,15 @@ function ResumeSections({
 }) {
   return (
     <>
-      {data.summary && <Section title="Summary" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}><p style={colorStyle(data.textColors.description)}>{data.summary}</p></Section>}
-      {data.skills.length > 0 && (
+      {!isSectionHidden(data, "summary") && data.summary && <Section title="Summary" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}><p style={colorStyle(data.textColors.description)}>{data.summary}</p></Section>}
+      {!isSectionHidden(data, "skills") && data.skills.length > 0 && (
         <Section title="Skills" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-1">
             {data.skills.map((skill) => <p className="before:mr-2 before:content-['-']" key={skill} style={colorStyle(data.textColors.description)}>{skill}</p>)}
           </div>
         </Section>
       )}
-      {data.experience.length > 0 && (
+      {!isSectionHidden(data, "experience") && data.experience.length > 0 && (
         <Section title="Experience" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
           {data.experience.map((item, index) => (
             <Entry
@@ -301,28 +301,32 @@ function ResumeSections({
           ))}
         </Section>
       )}
-      {data.projects.length > 0 && (
+      {!isSectionHidden(data, "projects") && data.projects.length > 0 && (
         <Section title="Projects" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
           {data.projects.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.name}-${index}`} title={item.name} meta={[item.technologies, item.github, item.live].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
         </Section>
       )}
-      {data.education.length > 0 && (
+      {!isSectionHidden(data, "education") && data.education.length > 0 && (
         <Section title="Education" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
-          {data.education.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.college}-${index}`} title={item.degree} meta={`${item.college} | ${formatRange(item.startDate, item.endDate)}${item.cgpa ? ` | CGPA ${item.cgpa}` : ""}`} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} />)}
+          {data.education.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.college}-${index}`} title={item.degree} meta={[item.college, formatRange(item.startDate, item.endDate), item.cgpa ? `CGPA ${item.cgpa}` : ""].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
         </Section>
       )}
-      {data.certifications.length > 0 && (
+      {!isSectionHidden(data, "certifications") && data.certifications.length > 0 && (
         <Section title="Certifications" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
-          {data.certifications.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.name}-${index}`} title={item.name} meta={`${item.provider} | ${formatMonth(item.date)}`} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} />)}
+          {data.certifications.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.name}-${index}`} title={item.name} meta={[item.provider, formatMonth(item.date)].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
         </Section>
       )}
-      {data.achievements.length > 0 && (
+      {!isSectionHidden(data, "achievements") && data.achievements.length > 0 && (
         <Section title="Achievements" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
           {data.achievements.map((achievement, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${achievement.title}-${index}`} title={achievement.title || "Achievement"} subtitleColor={data.textColors.subtitle} body={achievement.description} />)}
         </Section>
       )}
     </>
   );
+}
+
+function isSectionHidden(data: ResumeData, section: ResumeSectionKey) {
+  return (data.hiddenSections ?? []).includes(section);
 }
 
 function Section({ title, accent, allowDark, boxed, centered, labelColumn, timeline, compact, airy, children }: { title: string; accent: string; allowDark: boolean; boxed?: boolean; centered?: boolean; labelColumn?: boolean; timeline?: boolean; compact?: boolean; airy?: boolean; children: React.ReactNode }) {

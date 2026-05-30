@@ -89,7 +89,8 @@ export function TemplateGallery({
         degree: "Diploma in Financial Accounting",
         cgpa: "",
         startDate: "",
-        endDate: "2016-01"
+        endDate: "2016-01",
+        description: ""
       }
     ]
   }), [draft, themeId, userEmail, userName]);
