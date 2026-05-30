@@ -8,6 +8,13 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 
 export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Account",
+  robots: {
+    index: false,
+    follow: false
+  }
+};
 
 export default async function AccountPage() {
   const user = await getCurrentUser();

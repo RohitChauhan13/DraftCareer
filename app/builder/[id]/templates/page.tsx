@@ -6,6 +6,14 @@ import { prisma } from "@/lib/prisma";
 import { getTemplateTagSettings } from "@/lib/template-tags";
 import { resumeDataFromSections } from "@/utils/resume";
 
+export const metadata = {
+  title: "Choose Template",
+  robots: {
+    index: false,
+    follow: false
+  }
+};
+
 export default async function ChangeTemplatePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");

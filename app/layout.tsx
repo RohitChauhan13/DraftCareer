@@ -3,7 +3,7 @@ import type { Viewport } from "next";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://draft-career.vercel.app";
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://draft-career.vercel.app").replace(/\/$/, "");
 const themeScript = `
   (() => {
     try {
@@ -22,10 +22,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   applicationName: "DraftCareer",
   title: {
-    default: "DraftCareer - Free Resume Builder and ATS Resume Maker",
+    default: "DraftCareer - Free Resume Builder for ATS-Friendly Resumes",
     template: "%s | DraftCareer"
   },
-  description: "Build a professional resume for free with DraftCareer. Choose ATS-friendly resume templates, preview instantly, save your resume, and export a polished PDF.",
+  description: "Create a professional ATS-friendly resume online for free with DraftCareer. Choose resume templates, preview instantly, save your resumes, and export a polished PDF.",
   keywords: [
     "free resume builder",
     "resume maker",
@@ -36,6 +36,7 @@ export const metadata: Metadata = {
     "professional resume builder",
     "download resume PDF"
   ],
+  referrer: "origin-when-cross-origin",
   authors: [{ name: "DraftCareer" }],
   creator: "DraftCareer",
   publisher: "DraftCareer",
@@ -52,10 +53,11 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "/",
+    url: siteUrl,
     siteName: "DraftCareer",
-    title: "DraftCareer - Free Resume Builder and ATS Resume Maker",
-    description: "Create an ATS-friendly resume online with free templates, live preview, saved resume history, and PDF export.",
+    title: "DraftCareer - Free Resume Builder for ATS-Friendly Resumes",
+    description: "Build an ATS-friendly resume online with professional templates, live preview, saved resume history, and PDF export.",
+    locale: "en_US",
     images: [
       {
         url: "/icon.svg",
@@ -68,7 +70,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "DraftCareer - Free Resume Builder",
-    description: "Build an ATS-friendly resume online and export a polished PDF.",
+    description: "Create an ATS-friendly resume online and export a polished PDF.",
     images: ["/icon.svg"]
   },
   robots: {

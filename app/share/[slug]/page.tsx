@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { MainNav } from "@/components/main-nav";
 import { ResumeUnavailable } from "@/components/resume-unavailable";
 import { ResumePreview } from "@/templates/resume-preview";
@@ -20,6 +21,50 @@ type PublicSectionRow = {
   section_type: string;
   content_json: unknown;
 };
+
+type ShareMetadataRow = {
+  title: string;
+  is_public: boolean;
+  updated_at: Date;
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const rows = await prisma.$queryRaw<ShareMetadataRow[]>`
+    SELECT title, is_public, updated_at
+    FROM resumes
+    WHERE share_slug = ${slug}
+    LIMIT 1
+  `;
+  const resume = rows[0];
+  if (!resume || !resume.is_public) {
+    return {
+      title: "Resume unavailable",
+      robots: {
+        index: false,
+        follow: false
+      }
+    };
+  }
+
+  return {
+    title: `${resume.title} Resume`,
+    description: `View ${resume.title}, a public resume created with DraftCareer.`,
+    alternates: {
+      canonical: `/share/${slug}`
+    },
+    openGraph: {
+      title: `${resume.title} Resume`,
+      description: "Public resume created with DraftCareer.",
+      url: `/share/${slug}`,
+      type: "profile"
+    },
+    robots: {
+      index: true,
+      follow: true
+    }
+  };
+}
 
 export default async function PublicResumePage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser();

@@ -6,6 +6,14 @@ import { prisma } from "@/lib/prisma";
 import { getResumeShareInfo } from "@/lib/resume-share";
 import { resumeDataFromSections } from "@/utils/resume";
 
+export const metadata = {
+  title: "Edit Resume",
+  robots: {
+    index: false,
+    follow: false
+  }
+};
+
 export default async function EditResumePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");

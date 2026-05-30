@@ -8,6 +8,13 @@ import { getDonationSettings } from "@/lib/donation";
 import { getTemplateTagSettings } from "@/lib/template-tags";
 
 export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Template Config",
+  robots: {
+    index: false,
+    follow: false
+  }
+};
 
 export default async function TemplateTagsPage() {
   const user = await getCurrentUser();

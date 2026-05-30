@@ -10,6 +10,14 @@ import type { TemplateId, ThemeId } from "@/types/resume";
 const templateIds: TemplateId[] = ["modern", "ats", "minimal", "developer", "classic", "executive", "timeline", "compact", "editorial", "accent", "split", "mono"];
 const themeIds: ThemeId[] = ["purple", "charcoal", "taupe", "navy", "blue", "teal", "green", "orange", "red"];
 
+export const metadata = {
+  title: "Resume Builder",
+  robots: {
+    index: false,
+    follow: false
+  }
+};
+
 export default async function NewResumePage({ searchParams }: { searchParams: Promise<{ templateId?: string; themeId?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");

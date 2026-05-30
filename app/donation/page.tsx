@@ -6,6 +6,18 @@ import { getCurrentUser } from "@/lib/auth";
 import { createUpiUrl, getDonationSettings } from "@/lib/donation";
 
 export const dynamic = "force-dynamic";
+export const metadata = {
+  title: "Support DraftCareer",
+  description: "Support DraftCareer and help keep the free resume builder fast, focused, and useful for job seekers.",
+  alternates: {
+    canonical: "/donation"
+  },
+  openGraph: {
+    title: "Support DraftCareer",
+    description: "Help keep DraftCareer's free resume builder available and improving.",
+    url: "/donation"
+  }
+};
 
 const presetAmounts = [49, 99, 199];
 

@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 import { MainNav } from "@/components/main-nav";
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://draft-career.vercel.app").replace(/\/$/, "");
+
 const highlights = [
   "ATS-friendly templates",
   "Guided sections",
@@ -35,7 +37,7 @@ const homeStructuredData = {
   name: "DraftCareer",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  url: "https://draftcareer.vercel.app",
+  url: siteUrl,
   description: "DraftCareer is a free online resume builder for creating ATS-friendly resumes with professional templates, live preview, saved resume history, and PDF export.",
   offers: {
     "@type": "Offer",
@@ -51,6 +53,19 @@ const homeStructuredData = {
   ]
 };
 
+const websiteStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "DraftCareer",
+  url: siteUrl,
+  description: "Free online resume builder for ATS-friendly resumes and PDF export.",
+  potentialAction: {
+    "@type": "CreateAction",
+    target: `${siteUrl}/builder/new`,
+    name: "Create a resume"
+  }
+};
+
 export default async function HomePage() {
   const user = await getCurrentUser();
   const donationSettings = await getDonationSettings();
@@ -61,7 +76,7 @@ export default async function HomePage() {
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([homeStructuredData, websiteStructuredData]) }}
       />
       <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} showDonation={donationSettings.isPageVisible} />
 

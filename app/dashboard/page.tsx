@@ -8,6 +8,14 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 import { prisma } from "@/lib/prisma";
 
+export const metadata = {
+  title: "Dashboard",
+  robots: {
+    index: false,
+    follow: false
+  }
+};
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
