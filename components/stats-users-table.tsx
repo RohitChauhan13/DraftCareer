@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronsUpDown, Mail, Search, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Mail, RotateCcw, Search, ShieldCheck, Sparkles, X, ZapOff } from "lucide-react";
+import { toast } from "sonner";
 import { UserBlockButton } from "@/components/user-block-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 
 export type StatsUserRow = {
@@ -19,17 +21,24 @@ export type StatsUserRow = {
   resumeCount: number;
   publicResumeCount: number;
   privateResumeCount: number;
+  aiEnhanceCount: number;
+  aiEnhanceDailyCount: number;
+  aiEnhanceBlocked: boolean;
 };
 
 type StatusFilter = "all" | "verified" | "unverified" | "blocked" | "active";
-type SortKey = "name" | "status" | "createdAt" | "lastAppUseAt" | "resumeCount" | "publicResumeCount" | "privateResumeCount";
+type SortKey = "name" | "status" | "createdAt" | "lastAppUseAt" | "resumeCount" | "publicResumeCount" | "privateResumeCount" | "aiEnhanceDailyCount" | "aiEnhanceCount";
 type SortDirection = "asc" | "desc";
+type EnhanceState = Record<string, { dailyCount: number; blocked: boolean }>;
 
 export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string; rows: StatsUserRow[] }) {
   const [name, setName] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("lastAppUseAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [enhanceState, setEnhanceState] = useState<EnhanceState>({});
+  const [enhanceAction, setEnhanceAction] = useState<string | null>(null);
+  const [confirmEnhanceAction, setConfirmEnhanceAction] = useState<{ user: StatsUserRow; action: "reset" | "block" } | null>(null);
 
   const filteredRows = useMemo(() => {
     const search = name.trim().toLowerCase();
@@ -37,11 +46,12 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
 
     const nextRows = rows.filter((row) => {
       const matchesName = !search || `${row.name} ${row.email}`.toLowerCase().includes(search);
+      const state = getAiState(row, enhanceState);
       const matchesStatus =
         status === "all" ||
         (status === "verified" && row.emailVerified) ||
         (status === "unverified" && !row.emailVerified) ||
-        (status === "blocked" && row.isBlocked) ||
+        (status === "blocked" && (row.isBlocked || state.blocked)) ||
         (status === "active" && row.lastSeenAt !== null && new Date(row.lastSeenAt).getTime() >= activeCutoff);
 
       return matchesName && matchesStatus;
@@ -49,9 +59,9 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
 
     return nextRows.sort((first, second) => {
       const direction = sortDirection === "asc" ? 1 : -1;
-      return compareRows(first, second, sortKey) * direction;
+      return compareRows(first, second, sortKey, enhanceState) * direction;
     });
-  }, [name, rows, sortDirection, sortKey, status]);
+  }, [enhanceState, name, rows, sortDirection, sortKey, status]);
 
   const hasFilters = Boolean(name || status !== "all");
 
@@ -69,6 +79,39 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
     setName("");
     setStatus("all");
   }
+
+  async function updateUserEnhance(user: StatsUserRow, action: "reset" | "block") {
+    const current = getAiState(user, enhanceState);
+    const actionKey = `${user.id}-${action}`;
+    setEnhanceAction(actionKey);
+    try {
+      const body = action === "reset"
+        ? { resetCount: true }
+        : { aiEnhanceBlocked: !current.blocked };
+      const response = await fetch(`/api/admin/users/${user.id}/ai-enhance`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setEnhanceState((state) => ({
+        ...state,
+          [user.id]: {
+          dailyCount: result.user.aiEnhanceDailyCount,
+          blocked: result.user.aiEnhanceBlocked
+        }
+      }));
+      toast.success(action === "reset" ? "Enhance count reset" : result.user.aiEnhanceBlocked ? "AI enhance blocked" : "AI enhance unblocked");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Update failed");
+    } finally {
+      setEnhanceAction(null);
+      setConfirmEnhanceAction(null);
+    }
+  }
+
+  const confirmAiState = confirmEnhanceAction ? getAiState(confirmEnhanceAction.user, enhanceState) : null;
 
   return (
     <Card className="mt-6 overflow-hidden">
@@ -116,13 +159,15 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[1240px] border-collapse text-left text-sm">
             <thead className="border-y border-border bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="User" sortKey="name" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Resumes" sortKey="resumeCount" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Public" sortKey="publicResumeCount" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Private" sortKey="privateResumeCount" onSort={updateSort} />
+                <SortableHead activeKey={sortKey} direction={sortDirection} label="AI today" sortKey="aiEnhanceDailyCount" onSort={updateSort} />
+                <SortableHead activeKey={sortKey} direction={sortDirection} label="AI total" sortKey="aiEnhanceCount" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Created" sortKey="createdAt" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Last use" sortKey="lastAppUseAt" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Status" sortKey="status" onSort={updateSort} />
@@ -143,6 +188,14 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
                   <td className="px-4 py-3 font-bold">{row.resumeCount}</td>
                   <td className="px-4 py-3">{row.publicResumeCount}</td>
                   <td className="px-4 py-3">{row.privateResumeCount}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="text-primary" size={14} />
+                      <span className="font-bold">{getAiState(row, enhanceState).dailyCount}</span>
+                      {getAiState(row, enhanceState).blocked && <Badge tone="danger">AI blocked</Badge>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-bold">{row.aiEnhanceCount}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(row.createdAt)}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(row.lastAppUseAt)}</td>
                   <td className="px-4 py-3">
@@ -152,19 +205,42 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <UserBlockButton
-                      disabled={row.id === currentUserId}
-                      initialBlocked={row.isBlocked}
-                      iconOnly
-                      userId={row.id}
-                      userName={row.name}
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        loading={enhanceAction === `${row.id}-reset`}
+                        size="icon"
+                        title="Reset AI enhance count"
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setConfirmEnhanceAction({ user: row, action: "reset" })}
+                      >
+                        <RotateCcw size={15} />
+                      </Button>
+                      <Button
+                        className={getAiState(row, enhanceState).blocked ? "border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700" : "border-amber-500 bg-amber-500 text-white hover:bg-amber-600"}
+                        loading={enhanceAction === `${row.id}-block`}
+                        size="icon"
+                        title={getAiState(row, enhanceState).blocked ? "Unblock AI enhance" : "Block AI enhance"}
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setConfirmEnhanceAction({ user: row, action: "block" })}
+                      >
+                        {getAiState(row, enhanceState).blocked ? <ShieldCheck size={15} /> : <ZapOff size={15} />}
+                      </Button>
+                      <UserBlockButton
+                        disabled={row.id === currentUserId}
+                        initialBlocked={row.isBlocked}
+                        iconOnly
+                        userId={row.id}
+                        userName={row.name}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
               {filteredRows.length === 0 && (
                 <tr>
-                  <td className="px-4 py-8 text-center text-sm text-muted-foreground" colSpan={8}>
+                  <td className="px-4 py-8 text-center text-sm text-muted-foreground" colSpan={10}>
                     No users match these filters.
                   </td>
                 </tr>
@@ -173,6 +249,33 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
           </table>
         </div>
       </CardContent>
+      <ConfirmDialog
+        cancelLabel="Cancel"
+        confirmLabel={confirmEnhanceAction?.action === "reset" ? "Reset count" : confirmAiState?.blocked ? "Unblock AI" : "Block AI"}
+        description={
+          confirmEnhanceAction?.action === "reset"
+            ? `This will set ${confirmEnhanceAction.user.name}'s AI enhancement count for today back to 0.`
+            : confirmAiState?.blocked
+              ? `${confirmEnhanceAction?.user.name} will be able to use AI enhancement again if they have chances left.`
+              : `${confirmEnhanceAction?.user.name} will not be able to use AI enhancement, even if they have chances left.`
+        }
+        loading={confirmEnhanceAction ? enhanceAction === `${confirmEnhanceAction.user.id}-${confirmEnhanceAction.action}` : false}
+        open={confirmEnhanceAction !== null}
+        title={
+          confirmEnhanceAction?.action === "reset"
+            ? "Reset today's AI count?"
+            : confirmAiState?.blocked
+              ? "Unblock AI enhancement?"
+              : "Block AI enhancement?"
+        }
+        variant={confirmEnhanceAction?.action === "block" && !confirmAiState?.blocked ? "danger" : "primary"}
+        onCancel={() => {
+          if (!enhanceAction) setConfirmEnhanceAction(null);
+        }}
+        onConfirm={() => {
+          if (confirmEnhanceAction) updateUserEnhance(confirmEnhanceAction.user, confirmEnhanceAction.action);
+        }}
+      />
     </Card>
   );
 }
@@ -225,17 +328,25 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function compareRows(first: StatsUserRow, second: StatsUserRow, sortKey: SortKey) {
+function compareRows(first: StatsUserRow, second: StatsUserRow, sortKey: SortKey, enhanceState: EnhanceState) {
   if (sortKey === "name") return first.name.localeCompare(second.name);
-  if (sortKey === "status") return statusRank(first) - statusRank(second);
+  if (sortKey === "status") return statusRank(first, enhanceState) - statusRank(second, enhanceState);
   if (sortKey === "createdAt" || sortKey === "lastAppUseAt") {
     return new Date(first[sortKey]).getTime() - new Date(second[sortKey]).getTime();
+  }
+  if (sortKey === "aiEnhanceDailyCount") {
+    return (enhanceState[first.id]?.dailyCount ?? first.aiEnhanceDailyCount) - (enhanceState[second.id]?.dailyCount ?? second.aiEnhanceDailyCount);
   }
   return first[sortKey] - second[sortKey];
 }
 
-function statusRank(row: StatsUserRow) {
+function getAiState(row: StatsUserRow, enhanceState: EnhanceState) {
+  return enhanceState[row.id] ?? { dailyCount: row.aiEnhanceDailyCount, blocked: row.aiEnhanceBlocked };
+}
+
+function statusRank(row: StatsUserRow, enhanceState: EnhanceState) {
   if (row.isBlocked) return 3;
+  if (enhanceState[row.id]?.blocked ?? row.aiEnhanceBlocked) return 3;
   if (!row.emailVerified) return 2;
   return 1;
 }

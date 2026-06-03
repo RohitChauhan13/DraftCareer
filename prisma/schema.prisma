@@ -15,6 +15,10 @@ model User {
   role          String   @default("user")
   emailVerified Boolean  @default(false) @map("email_verified")
   isBlocked     Boolean  @default(false) @map("is_blocked")
+  aiEnhanceCount Int     @default(0) @map("ai_enhance_count")
+  aiEnhanceDailyCount Int @default(0) @map("ai_enhance_daily_count")
+  aiEnhanceDailyDate String? @map("ai_enhance_daily_date")
+  aiEnhanceBlocked Boolean @default(false) @map("ai_enhance_blocked")
   lastSeenAt    DateTime? @map("last_seen_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -88,4 +92,13 @@ model TemplateTagSetting {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("template_tag_settings")
+}
+
+model AiEnhanceSettings {
+  id              String   @id @default("main")
+  limitPerUser    Int      @default(3) @map("limit_per_user")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_enhance_settings")
 }

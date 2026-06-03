@@ -25,9 +25,12 @@ export const metadata: Metadata = {
     default: "DraftCareer - Free Resume Builder for ATS-Friendly Resumes",
     template: "%s | DraftCareer"
   },
-  description: "Create a professional ATS-friendly resume online for free with DraftCareer. Choose resume templates, preview instantly, save your resumes, and export a polished PDF.",
+  description: "Create a professional ATS-friendly resume online for free with DraftCareer. Use AI enhancement, choose resume templates, preview instantly, save your resumes, and export a polished PDF.",
   keywords: [
     "free resume builder",
+    "AI resume builder",
+    "AI resume enhancement",
+    "AI ATS resume builder",
     "resume maker",
     "ATS resume builder",
     "resume templates",
@@ -56,7 +59,7 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: "DraftCareer",
     title: "DraftCareer - Free Resume Builder for ATS-Friendly Resumes",
-    description: "Build an ATS-friendly resume online with professional templates, live preview, saved resume history, and PDF export.",
+    description: "Build an ATS-friendly resume online with AI enhancement, professional templates, live preview, saved resume history, and PDF export.",
     locale: "en_US",
     images: [
       {
@@ -69,8 +72,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "DraftCareer - Free Resume Builder",
-    description: "Create an ATS-friendly resume online and export a polished PDF.",
+    title: "DraftCareer - Free AI Resume Builder",
+    description: "Create an ATS-friendly resume online with AI enhancement and export a polished PDF.",
     images: ["/icon.svg"]
   },
   robots: {

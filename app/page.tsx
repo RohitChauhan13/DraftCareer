@@ -2,15 +2,16 @@ import Link from "next/link";
 import { ArrowDown, CheckCircle2, FileText, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
+import { HomeGuideModal } from "@/components/home-guide-modal";
 import { MainNav } from "@/components/main-nav";
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://draft-career.vercel.app").replace(/\/$/, "");
 
 const highlights = [
+  "AI ATS enhancement",
   "ATS-friendly templates",
   "Guided sections",
-  "PDF export",
-  "Secure account storage"
+  "PDF export"
 ];
 
 const steps = [
@@ -21,8 +22,8 @@ const steps = [
   },
   {
     icon: Sparkles,
-    title: "Shape every detail",
-    text: "Add experience, skills, projects, education, and links in one focused workspace."
+    title: "Enhance with AI",
+    text: "Use AI to sharpen your resume for ATS keywords, clearer impact, and recruiter-friendly wording."
   },
   {
     icon: FileText,
@@ -38,7 +39,7 @@ const homeStructuredData = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: siteUrl,
-  description: "DraftCareer is a free online resume builder for creating ATS-friendly resumes with professional templates, live preview, saved resume history, and PDF export.",
+  description: "DraftCareer is a free online AI resume builder for creating ATS-friendly resumes with professional templates, AI enhancement, live preview, saved resume history, and PDF export.",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -46,6 +47,7 @@ const homeStructuredData = {
   },
   featureList: [
     "Free resume builder",
+    "AI resume enhancement",
     "ATS-friendly resume templates",
     "Live resume preview",
     "PDF resume export",
@@ -58,7 +60,7 @@ const websiteStructuredData = {
   "@type": "WebSite",
   name: "DraftCareer",
   url: siteUrl,
-  description: "Free online resume builder for ATS-friendly resumes and PDF export.",
+  description: "Free online AI resume builder for ATS-friendly resumes, AI enhancement, and PDF export.",
   potentialAction: {
     "@type": "CreateAction",
     target: `${siteUrl}/builder/new`,
@@ -79,6 +81,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([homeStructuredData, websiteStructuredData]) }}
       />
       <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} showDonation={donationSettings.isPageVisible} />
+      <HomeGuideModal builderHref={builderHref} />
 
       <section className="relative">
         <div className="absolute inset-y-0 right-0 hidden w-[46%] bg-muted lg:block" />
@@ -86,10 +89,10 @@ export default async function HomePage() {
           <div className="relative z-10 max-w-2xl">
             <p className="text-lg font-extrabold text-primary sm:text-2xl">Fast. Easy. Effective.</p>
             <h1 className="mt-4 max-w-3xl text-4xl font-black leading-[1.08] tracking-normal text-foreground sm:mt-6 sm:text-6xl lg:text-7xl">
-              Free resume builder for modern careers.
+              Free AI resume builder for modern careers.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:mt-7 sm:text-xl sm:leading-8">
-              Create an ATS-friendly resume online with professional templates, live preview, saved resume history, and a polished PDF export.
+              Create an ATS-friendly resume online with professional templates, AI-powered enhancement, live preview, saved resume history, and polished PDF export.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:gap-4">
@@ -123,7 +126,7 @@ export default async function HomePage() {
                   <span className="h-3 w-3 rounded-full bg-amber-400" />
                   <span className="h-3 w-3 rounded-full bg-emerald-500" />
                 </div>
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300">ATS Ready</span>
+                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300">AI + ATS Ready</span>
               </div>
               <div className="grid grid-cols-[230px_1fr]">
                 <aside className="bg-slate-950 px-7 py-8 text-white">
@@ -171,7 +174,7 @@ export default async function HomePage() {
                   </div>
 
                   <p className="mt-5 text-sm leading-6 text-slate-700 dark:text-slate-300">
-                    Product-minded engineer building fast, accessible interfaces with clean architecture, thoughtful details, and measurable business outcomes.
+                    AI-enhanced summary focused on product impact, accessible interfaces, clean architecture, and measurable business outcomes.
                   </p>
 
                   <ResumeSection

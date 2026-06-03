@@ -354,7 +354,7 @@ function Section({ title, accent, allowDark, boxed, centered, labelColumn, timel
 }
 
 function Entry({ title, meta, body, allowDark, descriptionColor, metaColor, subtitleColor, leftMeta = false }: { title: string; meta?: string; body?: string; allowDark: boolean; descriptionColor?: string; metaColor?: string; subtitleColor?: string; leftMeta?: boolean }) {
-  const cleanBody = cleanResumeText(body);
+  const bodyContent = parseResumeBody(body);
   const bodyStyle = colorStyle(descriptionColor);
   const metaStyle = colorStyle(metaColor);
   const titleStyle = colorStyle(subtitleColor);
@@ -365,7 +365,7 @@ function Entry({ title, meta, body, allowDark, descriptionColor, metaColor, subt
         {meta && <p className={cn("text-[10px] font-semibold text-slate-700", allowDark && "dark:text-slate-300")} style={metaStyle}>{meta}</p>}
         <div>
           <h3 className="min-w-0 break-words text-[13px] font-bold" style={titleStyle}>{title}</h3>
-          {cleanBody && <p className={cn("mt-1 break-words text-slate-700", allowDark && "dark:text-slate-300")} style={bodyStyle}>{cleanBody}</p>}
+          <ResumeBody content={bodyContent} allowDark={allowDark} style={bodyStyle} />
         </div>
       </div>
     );
@@ -377,7 +377,29 @@ function Entry({ title, meta, body, allowDark, descriptionColor, metaColor, subt
         <h3 className="min-w-0 break-words text-[13px] font-bold uppercase" style={titleStyle}>{title}</h3>
         {meta && <p className={cn("max-w-[340px] text-right text-[10px] text-slate-500", allowDark && "dark:text-slate-400")} style={metaStyle}>{meta}</p>}
       </div>
-      {cleanBody && <p className={cn("mt-1 break-words text-slate-700", allowDark && "dark:text-slate-300")} style={bodyStyle}>{cleanBody}</p>}
+      <ResumeBody content={bodyContent} allowDark={allowDark} style={bodyStyle} />
+    </div>
+  );
+}
+
+function ResumeBody({ content, allowDark, style }: { content: ParsedResumeBody; allowDark: boolean; style?: CSSProperties }) {
+  if (content.items.length === 0) return null;
+
+  if (content.kind === "bullets") {
+    return (
+      <ul className={cn("mt-1 list-disc space-y-0.5 pl-4 text-slate-700", allowDark && "dark:text-slate-300")} style={style}>
+        {content.items.map((item, index) => (
+          <li className="break-words" key={`${item}-${index}`}>{item}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <div className={cn("mt-1 space-y-1 text-slate-700", allowDark && "dark:text-slate-300")} style={style}>
+      {content.items.map((item, index) => (
+        <p className="break-words" key={`${item}-${index}`}>{item}</p>
+      ))}
     </div>
   );
 }
@@ -400,12 +422,33 @@ function ContactRow({ personal, allowDark, className, stacked = false }: { perso
   );
 }
 
-function cleanResumeText(value?: string) {
-  return (value ?? "")
-    .replace(/-\s*\n\s*/g, "")
-    .replace(/\s*\n\s*/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+type ParsedResumeBody = {
+  kind: "paragraphs" | "bullets";
+  items: string[];
+};
+
+function parseResumeBody(value?: string): ParsedResumeBody {
+  const raw = (value ?? "").replace(/\r\n/g, "\n").trim();
+  if (!raw) return { kind: "paragraphs", items: [] };
+
+  const hasBulletMarkers = /(?:^|\n)\s*[-*•]\s+/.test(raw) || /\s+•\s+/.test(raw);
+  if (hasBulletMarkers) {
+    const items = raw
+      .replace(/\s+•\s+/g, "\n")
+      .split(/\n+/)
+      .map((item) => item.replace(/^\s*[-*•]\s+/, "").replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+
+    return { kind: "bullets", items };
+  }
+
+  return {
+    kind: "paragraphs",
+    items: raw
+      .split(/\n+/)
+      .map((item) => item.replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+  };
 }
 
 function formatRange(start?: string, end?: string) {

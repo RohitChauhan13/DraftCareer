@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, X } from "lucide-react";
+import { ArrowLeft, CalendarClock, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
 import type { ResumeData, ResumeSectionKey, ResumeTextColorKey, TemplateId } from "@/types/resume";
@@ -16,6 +16,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { MainNav } from "@/components/main-nav";
 import { WordLoader } from "@/components/page-loader";
 import { ThemeToggle } from "@/components/theme-toggle";
+import type { AiEnhanceUsage } from "@/lib/ai-enhance";
 import type { ResumeShareInfo } from "@/lib/resume-share";
 
 const skillSuggestions = ["React", "JavaScript", "React-Native", "Next.js", "TypeScript", "Node.js", "Basic HTML", "Angular", "PostgreSQL", "MySQL", "MongoDB", "Prisma", "Docker", "AWS", "Git"];
@@ -31,15 +32,24 @@ const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultC
 const templatesWithInitials: TemplateId[] = ["modern", "developer", "split"];
 const initialsPositions = ["left", "center", "right"] as const;
 const maxInitialsImageBytes = 5 * 1024 * 1024;
+const enhancementStages = [
+  "Extracting data",
+  "Sent to AI",
+  "Received AI enhanced data",
+  "Replacing current data"
+];
+const minimumEnhancementStageMs = 2000;
 
 export function ResumeBuilder({
   initialData,
+  initialAiEnhanceUsage,
   resumeId,
   initialShare,
   user,
   showDonation = true
 }: {
   initialData: ResumeData;
+  initialAiEnhanceUsage?: AiEnhanceUsage;
   resumeId?: string;
   initialShare?: ResumeShareInfo;
   user?: { name: string; email: string; role?: string };
@@ -51,6 +61,12 @@ export function ResumeBuilder({
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [data, setData] = useState<ResumeData>(initialData);
   const [saving, setSaving] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [enhancementStage, setEnhancementStage] = useState(0);
+  const [confirmEnhance, setConfirmEnhance] = useState(false);
+  const [enhancementError, setEnhancementError] = useState<string | null>(null);
+  const [dailyLimitOpen, setDailyLimitOpen] = useState(false);
+  const [aiEnhanceUsage, setAiEnhanceUsage] = useState<AiEnhanceUsage | undefined>(initialAiEnhanceUsage);
   const [exporting, setExporting] = useState(false);
   const [confirmDownload, setConfirmDownload] = useState(false);
   const [confirmShare, setConfirmShare] = useState(false);
@@ -127,6 +143,20 @@ export function ResumeBuilder({
     } finally {
       setSaving(false);
     }
+  }
+
+  function requestAiEnhancement() {
+    if (enhancing) return;
+    if (!validatePersonalDetails()) return;
+    if (aiEnhanceUsage?.blocked) {
+      toast.error("AI enhancement is blocked for your account.");
+      return;
+    }
+    if (typeof aiEnhanceUsage?.remaining === "number" && aiEnhanceUsage.remaining <= 0) {
+      setDailyLimitOpen(true);
+      return;
+    }
+    setConfirmEnhance(true);
   }
 
   async function changeTemplate() {
@@ -236,6 +266,43 @@ async function downloadPdf() {
     };
     reader.onerror = () => toast.error("Unable to load image");
     reader.readAsDataURL(file);
+  }
+
+  async function enhanceWithAi() {
+    if (enhancing) return;
+
+    setEnhancing(true);
+    setEnhancementError(null);
+    setEnhancementStage(0);
+    try {
+      await waitForStage();
+      setEnhancementStage(1);
+      const response = await fetch("/api/resumes/enhance", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ resume: data })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setEnhancementStage(2);
+      await waitForStage();
+      setEnhancementStage(3);
+      await waitForStage();
+      setData(result.resume);
+      if (result.usage) setAiEnhanceUsage(result.usage);
+      toast.success(typeof result.usage?.remaining === "number" ? `Enhanced for ATS. ${result.usage.remaining} chances left today.` : "Enhanced for ATS");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "AI enhancement failed. Please try again.";
+      if (message.toLowerCase().includes("chances for today")) {
+        setDailyLimitOpen(true);
+      } else {
+        setEnhancementError(message);
+      }
+    } finally {
+      setEnhancing(false);
+      setEnhancementStage(0);
+      setConfirmEnhance(false);
+    }
   }
 
   function readjustInitialsImage() {
@@ -348,6 +415,9 @@ async function downloadPdf() {
             <ThemeToggle />
             <Button size="icon" variant="secondary" onClick={() => setZoom((value) => Math.max(0.55, value - 0.08))} title="Zoom out"><Minus size={16} /></Button>
             <Button size="icon" variant="secondary" onClick={() => setZoom((value) => Math.min(1, value + 0.08))} title="Zoom in"><Plus size={16} /></Button>
+            <Button variant="secondary" onClick={requestAiEnhancement} loading={enhancing} loadingText="Enhancing" disabled={saving || exporting}>
+              <Sparkles size={16} /> Enhance with AI
+            </Button>
             <Button variant="secondary" onClick={save} loading={saving} loadingText="Saving"><Save size={16} /> Save</Button>
             {resumeId && (
               <>
@@ -400,12 +470,16 @@ async function downloadPdf() {
         </div>
       </header>
 
-      {(saving || exporting) && (
+      {(saving || exporting || enhancing) && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 px-4 backdrop-blur-sm">
-          <WordLoader
-            label={saving ? "Saving" : "Preparing"}
-            words={saving ? ["resume", "sections", "preview", "changes", "data"] : ["PDF", "layout", "pages", "download", "resume"]}
-          />
+          {enhancing ? (
+            <EnhancementStageLoader currentStage={enhancementStage} />
+          ) : (
+            <WordLoader
+              label={saving ? "Saving" : "Preparing"}
+              words={saving ? ["resume", "sections", "preview", "changes", "data"] : ["PDF", "layout", "pages", "download", "resume"]}
+            />
+          )}
         </div>
       )}
 
@@ -420,6 +494,40 @@ async function downloadPdf() {
           if (!exporting) setConfirmDownload(false);
         }}
         onConfirm={downloadPdf}
+      />
+
+      <ConfirmDialog
+        cancelLabel="Cancel"
+        confirmLabel={<><Sparkles size={16} /> Enhance with AI</>}
+        description={getEnhanceConfirmDescription(aiEnhanceUsage)}
+        loading={enhancing}
+        open={confirmEnhance && !enhancing}
+        title="Enhance resume with AI?"
+        onCancel={() => {
+          if (!enhancing) setConfirmEnhance(false);
+        }}
+        onConfirm={enhanceWithAi}
+      />
+
+      <ConfirmDialog
+        cancelLabel={null}
+        confirmLabel="Got it"
+        description={<DailyLimitContent />}
+        open={dailyLimitOpen}
+        title="Daily AI limit reached"
+        onCancel={() => setDailyLimitOpen(false)}
+        onConfirm={() => setDailyLimitOpen(false)}
+      />
+
+      <ConfirmDialog
+        cancelLabel="Cancel"
+        confirmLabel={<><RotateCcw size={16} /> Retry</>}
+        description={<EnhanceErrorContent message={enhancementError} />}
+        open={enhancementError !== null && !enhancing}
+        title="AI enhancement failed"
+        variant="danger"
+        onCancel={() => setEnhancementError(null)}
+        onConfirm={enhanceWithAi}
       />
 
       <ConfirmDialog
@@ -947,6 +1055,47 @@ function fitPdfPreviewToFullPages(root: HTMLElement) {
   };
 }
 
+function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
+  return (
+    <div className="w-full max-w-sm rounded-lg border border-white/10 bg-surface p-5 text-surface-foreground shadow-soft">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-md bg-primary text-primary-foreground">
+          <Sparkles size={18} />
+        </span>
+        <div>
+          <p className="font-semibold">Enhancing for ATS</p>
+          <p className="text-sm text-muted-foreground">{enhancementStages[currentStage]}</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {enhancementStages.map((stage, index) => {
+          const complete = index < currentStage;
+          const active = index === currentStage;
+
+          return (
+            <div className="flex items-center gap-3" key={stage}>
+              <span
+                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-xs font-bold ${
+                  complete
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : active
+                      ? "relative border-transparent text-primary before:absolute before:inset-0 before:rounded-full before:border before:border-primary before:border-t-transparent before:content-[''] before:animate-spin"
+                      : "border-border text-muted-foreground"
+                }`}
+              >
+                <span className="relative z-10">{complete ? <Check size={14} /> : index + 1}</span>
+              </span>
+              <span className={`text-sm font-medium ${active ? "text-foreground" : "text-muted-foreground"}`}>
+                {stage}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function cropSquareImage(source: string, crop: { x: number; y: number; zoom: number }) {
   return new Promise<string>((resolve, reject) => {
     const image = new Image();
@@ -973,6 +1122,10 @@ function cropSquareImage(source: string, crop: { x: number; y: number; zoom: num
     image.onerror = () => reject(new Error("Image failed to load"));
     image.src = source;
   });
+}
+
+function waitForStage() {
+  return new Promise((resolve) => setTimeout(resolve, minimumEnhancementStageMs));
 }
 
 function CropSlider({
@@ -1165,4 +1318,74 @@ function formatMonthLabel(value: string) {
 
 function formatPersonalField(field: typeof requiredPersonalFields[number]) {
   return field.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function getEnhanceConfirmDescription(usage?: AiEnhanceUsage) {
+  if (!usage) {
+    return (
+      <EnhanceConfirmContent
+        remainingLabel="AI enhancement available"
+      />
+    );
+  }
+
+  return (
+    <EnhanceConfirmContent
+      remainingLabel={usage.remaining === null ? "AI enhancement: Unlimited" : `AI enhancements left today: ${usage.remaining}`}
+      usesChance={usage.remaining !== null}
+    />
+  );
+}
+
+function EnhanceConfirmContent({ remainingLabel, usesChance = false }: { remainingLabel: string; usesChance?: boolean }) {
+  return (
+    <div className="space-y-3">
+      <p className="font-semibold text-foreground">{remainingLabel}</p>
+      <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
+        Fill all sections first for the best result.
+      </div>
+      <p>
+        {usesChance ? "Enhancing will use 1 of today's chances and replace your current editable resume content." : "Enhancing will replace your current editable resume content."}
+      </p>
+    </div>
+  );
+}
+
+function EnhanceErrorContent({ message }: { message: string | null }) {
+  return (
+    <div className="space-y-3">
+      <p>Gemini could not enhance the resume right now.</p>
+      {message && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800">
+          {message}
+        </div>
+      )}
+      <p>You can retry in a moment, or cancel and keep editing your resume.</p>
+    </div>
+  );
+}
+
+function DailyLimitContent() {
+  return (
+    <div className="mt-3 space-y-4">
+      <div className="overflow-hidden rounded-lg border border-amber-200 bg-amber-50 text-amber-950">
+        <div className="relative flex items-center gap-3 px-4 py-4">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-white shadow-sm">
+            <Sparkles className="animate-bounce text-amber-500" size={22} />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-amber-950">AI recharge in progress</p>
+            <p className="text-sm text-amber-800">Your daily enhance pack refills tomorrow.</p>
+          </div>
+        </div>
+        <div className="h-2 overflow-hidden bg-amber-100">
+          <div className="h-full w-1/3 animate-pulse rounded-r-full bg-amber-500" />
+        </div>
+      </div>
+      <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-foreground">
+        <CalendarClock className="shrink-0 text-primary" size={17} />
+        <span className="text-sm font-medium">Come back tomorrow, or ask an admin to reset today&apos;s AI count.</span>
+      </div>
+    </div>
+  );
 }

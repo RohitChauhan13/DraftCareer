@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { ResumeBuilder } from "@/components/resume-builder";
+import { getUserAiEnhanceUsage } from "@/lib/ai-enhance";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 import { prisma } from "@/lib/prisma";
@@ -17,7 +18,10 @@ export const metadata = {
 export default async function EditResumePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const donationSettings = await getDonationSettings();
+  const [donationSettings, aiEnhanceUsage] = await Promise.all([
+    getDonationSettings(),
+    getUserAiEnhanceUsage(user.id)
+  ]);
 
   const { id } = await params;
   const resume = await prisma.resume.findFirst({
@@ -27,5 +31,5 @@ export default async function EditResumePage({ params }: { params: Promise<{ id:
   if (!resume) notFound();
   const share = await getResumeShareInfo(resume.id);
 
-  return <ResumeBuilder resumeId={resume.id} initialData={resumeDataFromSections(resume)} initialShare={share} user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />;
+  return <ResumeBuilder resumeId={resume.id} initialData={resumeDataFromSections(resume)} initialAiEnhanceUsage={aiEnhanceUsage} initialShare={share} user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />;
 }

@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
-import { Activity, Eye, FileText, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { Activity, Eye, FileText, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
+import { AiEnhanceSettingsForm } from "@/components/ai-enhance-settings-form";
 import { MainNav } from "@/components/main-nav";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatsUsersTable } from "@/components/stats-users-table";
+import { getAiEnhanceSettings } from "@/lib/ai-enhance";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 import { prisma } from "@/lib/prisma";
@@ -30,6 +32,10 @@ type UserStatsRow = {
   public_resume_count: bigint;
   private_resume_count: bigint;
   latest_resume_update: Date | null;
+  ai_enhance_count: number;
+  ai_enhance_daily_count: number;
+  ai_enhance_daily_date: string | null;
+  ai_enhance_blocked: boolean;
 };
 
 export default async function StatsPage() {
@@ -38,6 +44,7 @@ export default async function StatsPage() {
   if (user.role !== "admin") redirect("/dashboard");
 
   const donationSettings = await getDonationSettings();
+  const aiEnhanceSettings = await getAiEnhanceSettings();
   const rows = await prisma.$queryRaw<UserStatsRow[]>`
     SELECT
       u.id,
@@ -47,6 +54,10 @@ export default async function StatsPage() {
       u.email_verified,
       u.is_blocked,
       u.last_seen_at,
+      u.ai_enhance_count,
+      u.ai_enhance_daily_count,
+      u.ai_enhance_daily_date,
+      u.ai_enhance_blocked,
       u.created_at,
       u.updated_at,
       COUNT(r.id) AS resume_count,
@@ -65,6 +76,7 @@ export default async function StatsPage() {
   const verifiedUsers = userRows.filter((row) => row.email_verified).length;
   const totalResumes = userRows.reduce((sum, row) => sum + Number(row.resume_count), 0);
   const publicResumes = userRows.reduce((sum, row) => sum + Number(row.public_resume_count), 0);
+  const totalAiEnhancements = userRows.reduce((sum, row) => sum + row.ai_enhance_count, 0);
   const activeUsers = userRows.filter((row) => row.last_seen_at && row.last_seen_at.getTime() >= activeCutoff).length;
   const tableRows = userRows.map((row) => {
     const inferredActivity = latestDate(row.updated_at, row.latest_resume_update);
@@ -81,7 +93,10 @@ export default async function StatsPage() {
       lastAppUseAt: lastActivity.toISOString(),
       resumeCount: Number(row.resume_count),
       publicResumeCount: Number(row.public_resume_count),
-      privateResumeCount: Number(row.private_resume_count)
+      privateResumeCount: Number(row.private_resume_count),
+      aiEnhanceCount: row.ai_enhance_count,
+      aiEnhanceDailyCount: isTodayAiEnhanceDate(row.ai_enhance_daily_date) ? row.ai_enhance_daily_count : 0,
+      aiEnhanceBlocked: row.ai_enhance_blocked
     };
   });
 
@@ -97,13 +112,16 @@ export default async function StatsPage() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <MetricCard icon={UsersRound} label="Users" value={totalUsers.toString()} />
           <MetricCard icon={ShieldCheck} label="Verified" value={verifiedUsers.toString()} />
           <MetricCard icon={FileText} label="Resumes" value={totalResumes.toString()} />
           <MetricCard icon={Eye} label="Public" value={publicResumes.toString()} />
+          <MetricCard icon={Sparkles} label="AI used" value={totalAiEnhancements.toString()} />
           <MetricCard icon={Activity} label="Active users" value={activeUsers.toString()} />
         </div>
+
+        <AiEnhanceSettingsForm initialLimit={aiEnhanceSettings.limitPerUser} />
 
         <StatsUsersTable currentUserId={user.id} rows={tableRows} />
       </section>
@@ -126,4 +144,15 @@ function MetricCard({ icon: Icon, label, value }: { icon: typeof UserRound; labe
 function latestDate(first: Date, second: Date | null) {
   if (!second) return first;
   return first > second ? first : second;
+}
+
+function isTodayAiEnhanceDate(value: string | null) {
+  if (!value) return false;
+  const today = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Asia/Kolkata",
+    year: "numeric"
+  }).format(new Date());
+  return value === today;
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ResumeBuilder } from "@/components/resume-builder";
 import { TemplateGallery } from "@/components/template-gallery";
+import { getUserAiEnhanceUsage } from "@/lib/ai-enhance";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
 import { getTemplateTagSettings } from "@/lib/template-tags";
@@ -21,9 +22,10 @@ export const metadata = {
 export default async function NewResumePage({ searchParams }: { searchParams: Promise<{ templateId?: string; themeId?: string; themeColor?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const [donationSettings, templateTagSettings] = await Promise.all([
+  const [donationSettings, templateTagSettings, aiEnhanceUsage] = await Promise.all([
     getDonationSettings(),
-    getTemplateTagSettings()
+    getTemplateTagSettings(),
+    getUserAiEnhanceUsage(user.id)
   ]);
 
   const params = await searchParams;
@@ -48,6 +50,7 @@ export default async function NewResumePage({ searchParams }: { searchParams: Pr
           email: user.email
         }
       }}
+      initialAiEnhanceUsage={aiEnhanceUsage}
       user={{ name: user.name, email: user.email, role: user.role }}
       showDonation={donationSettings.isPageVisible}
     />
