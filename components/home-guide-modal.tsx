@@ -218,11 +218,6 @@ function JourneyMap() {
           if (n.label === "left")   { lx = n.x - GAP; ly = n.y; anchor = "end"; }
           if (n.label === "right")  { lx = n.x + GAP; ly = n.y; anchor = "start"; }
 
-          // For top/bottom, two text lines; for left/right, two lines stacked
-          const microY  = n.label === "bottom" ? ly      : ly - 4;
-          const mainY   = n.label === "bottom" ? ly + 14 : ly + 10;
-          const singleY = n.label === "top"    ? ly - 4  : ly;   // fallback
-
           return (
             <motion.g
               key={label}
@@ -254,8 +249,6 @@ function JourneyMap() {
                 style={{ overflow: "visible" }}
               >
                 <div
-                  // @ts-expect-error
-                  xmlns="http://www.w3.org/1999/xhtml"
                   style={{
                     width: iconSize,
                     height: iconSize,
