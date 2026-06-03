@@ -1425,7 +1425,7 @@ function EnhanceConfirmContent({ remainingLabel, usesChance = false }: { remaini
 function EnhanceErrorContent({ message }: { message: string | null }) {
   return (
     <div className="space-y-3">
-      <p>Gemini could not enhance the resume right now.</p>
+      <p>Our AI modal could not enhance the resume right now.</p>
       {message && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800">
           {message}
