@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, BadgeIndianRupee, FileText, Home, LayoutDashboard, LayoutTemplate, LogIn, Menu, UserRound, X } from "lucide-react";
@@ -15,6 +16,8 @@ type MainNavUser = {
 
 export function MainNav({ user, showDonation = true }: { user: MainNavUser; showDonation?: boolean }) {
   const pathname = usePathname();
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
   const isLoggedIn = Boolean(user);
   const protectedHref = isLoggedIn ? undefined : "/login";
   const navItems = [
@@ -24,6 +27,29 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
     ...(user?.role === "admin" ? [{ label: "Stats", href: "/stats", icon: Activity }] : []),
     { label: "Dashboard", href: protectedHref ?? "/dashboard", icon: LayoutDashboard }
   ];
+
+  useEffect(() => {
+    if (!accountOpen) return;
+
+    function closeOnOutsideClick(event: MouseEvent) {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setAccountOpen(false);
+      }
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAccountOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [accountOpen]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
@@ -47,14 +73,19 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
         <div className="hidden items-center gap-2 lg:flex">
           <ThemeToggle />
           {user ? (
-            <details className="group relative">
-              <summary className="list-none">
-                <span className="grid h-10 w-10 cursor-pointer place-items-center rounded-full bg-primary text-sm font-black text-primary-foreground shadow-sm">
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+                className="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-black text-primary-foreground shadow-sm"
+                type="button"
+                onClick={() => setAccountOpen((open) => !open)}
+              >
                   {initials(user.name)}
-                </span>
-              </summary>
-              <div className="absolute right-0 top-12 w-64 rounded-lg border border-border bg-surface p-2 shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
-                <Link className="flex min-w-0 items-center gap-3 rounded-md px-3 py-3 hover:bg-muted" href="/account">
+              </button>
+              {accountOpen && (
+              <div className="absolute right-0 top-12 w-64 rounded-lg border border-border bg-surface p-2 shadow-[0_20px_60px_rgba(15,23,42,0.18)]" role="menu">
+                <Link className="flex min-w-0 items-center gap-3 rounded-md px-3 py-3 hover:bg-muted" href="/account" onClick={() => setAccountOpen(false)}>
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-muted text-primary">
                     <UserRound size={18} />
                   </span>
@@ -67,7 +98,8 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
                   <LogoutButton />
                 </div>
               </div>
-            </details>
+              )}
+            </div>
           ) : (
             <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground transition hover:bg-primary/90" href="/login">
               <LogIn size={16} /> Login
