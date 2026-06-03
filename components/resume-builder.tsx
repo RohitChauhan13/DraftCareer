@@ -1056,41 +1056,112 @@ function fitPdfPreviewToFullPages(root: HTMLElement) {
 }
 
 function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
+  const keywords = ["keywords", "impact", "clarity", "ATS"];
+
   return (
-    <div className="w-full max-w-sm rounded-lg border border-white/10 bg-surface p-5 text-surface-foreground shadow-soft">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-md bg-primary text-primary-foreground">
-          <Sparkles size={18} />
-        </span>
-        <div>
-          <p className="font-semibold">Enhancing for ATS</p>
-          <p className="text-sm text-muted-foreground">{enhancementStages[currentStage]}</p>
+    <div className="w-full max-w-lg overflow-hidden rounded-lg border border-border bg-surface text-surface-foreground shadow-[0_30px_90px_rgba(2,6,23,0.32)]">
+      <div className="relative overflow-hidden border-b border-border bg-muted/35 p-5">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.12)_1px,transparent_1px)] bg-[size:28px_28px]" />
+        <motion.div
+          animate={{ opacity: [0.18, 0.34, 0.18], scale: [0.92, 1.08, 0.92] }}
+          className="absolute right-6 top-5 h-24 w-24 rounded-full bg-primary/20 blur-2xl"
+          transition={{ duration: 2.4, repeat: Infinity }}
+        />
+        <motion.div
+          animate={{ x: ["-120%", "120%"] }}
+          className="absolute left-0 top-0 h-1 w-full bg-primary/70"
+          transition={{ duration: 1.7, ease: "easeInOut", repeat: Infinity }}
+        />
+        <div className="relative flex items-center gap-3">
+          <div className="relative grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+            <motion.span
+              animate={{ opacity: [0.45, 1, 0.45], scale: [0.92, 1.08, 0.92] }}
+              className="absolute inset-0 rounded-full bg-primary"
+              transition={{ duration: 1.6, repeat: Infinity }}
+            />
+            <motion.span
+              animate={{ rotate: 360 }}
+              className="absolute inset-[-5px] rounded-full border border-primary/40 border-t-primary"
+              transition={{ duration: 1.8, ease: "linear", repeat: Infinity }}
+            />
+            <Sparkles className="relative z-10" size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-lg font-black">Enhancing for ATS</p>
+            <p className="text-sm font-medium text-muted-foreground">{enhancementStages[currentStage]}</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {keywords.map((keyword, index) => (
+                <motion.span
+                  animate={{ opacity: [0.55, 1, 0.55], y: [0, -1, 0] }}
+                  className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary"
+                  key={keyword}
+                  transition={{ delay: index * 0.18, duration: 1.4, repeat: Infinity }}
+                >
+                  {keyword}
+                </motion.span>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-      <div className="space-y-3">
+      <div className="grid gap-5 p-5 md:grid-cols-[1fr_150px]">
+        <div className="space-y-3">
         {enhancementStages.map((stage, index) => {
           const complete = index < currentStage;
           const active = index === currentStage;
 
           return (
-            <div className="flex items-center gap-3" key={stage}>
+            <div className="grid grid-cols-[28px_1fr] items-center gap-3" key={stage}>
               <span
                 className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-xs font-bold ${
                   complete
                     ? "border-primary bg-primary text-primary-foreground"
                     : active
-                      ? "relative border-transparent text-primary before:absolute before:inset-0 before:rounded-full before:border before:border-primary before:border-t-transparent before:content-[''] before:animate-spin"
+                      ? "relative border-transparent text-primary before:absolute before:inset-0 before:rounded-full before:border-2 before:border-primary before:border-t-transparent before:content-[''] before:animate-spin"
                       : "border-border text-muted-foreground"
                 }`}
               >
                 <span className="relative z-10">{complete ? <Check size={14} /> : index + 1}</span>
               </span>
-              <span className={`text-sm font-medium ${active ? "text-foreground" : "text-muted-foreground"}`}>
-                {stage}
-              </span>
+              <div>
+                <p className={`text-sm font-bold ${active ? "text-foreground" : complete ? "text-foreground" : "text-muted-foreground"}`}>
+                  {stage}
+                </p>
+                {active && (
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <motion.div
+                      animate={{ x: ["-35%", "135%"] }}
+                      className="h-full w-1/2 rounded-full bg-primary"
+                      transition={{ duration: 1.2, ease: "easeInOut", repeat: Infinity }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
+        </div>
+
+        <div className="relative hidden overflow-hidden rounded-md border border-border bg-muted/30 p-3 md:block">
+          <p className="text-xs font-black uppercase text-muted-foreground">Resume scan</p>
+          <div className="mt-3 space-y-2">
+            {[72, 88, 54, 96, 66].map((width, index) => (
+              <div className="h-2 overflow-hidden rounded-full bg-surface" key={width}>
+                <motion.div
+                  animate={{ opacity: [0.45, 1, 0.45] }}
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${width}%` }}
+                  transition={{ delay: index * 0.16, duration: 1.25, repeat: Infinity }}
+                />
+              </div>
+            ))}
+          </div>
+          <motion.div
+            animate={{ y: ["-20%", "125%"] }}
+            className="absolute left-0 right-0 top-0 h-10 bg-gradient-to-b from-transparent via-primary/20 to-transparent"
+            transition={{ duration: 1.6, ease: "easeInOut", repeat: Infinity }}
+          />
+        </div>
       </div>
     </div>
   );
