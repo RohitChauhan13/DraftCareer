@@ -64,6 +64,7 @@ export function HomeGuideModal({ builderHref }: { builderHref: string }) {
           className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/60 px-3 py-6 backdrop-blur-sm sm:px-4"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
+          onMouseDown={close}
         >
           <motion.div
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -71,6 +72,7 @@ export function HomeGuideModal({ builderHref }: { builderHref: string }) {
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             initial={{ opacity: 0, scale: 0.96, y: 16 }}
             transition={{ type: "spring", damping: 22, stiffness: 210 }}
+            onMouseDown={(event) => event.stopPropagation()}
           >
             {/* Grid texture */}
             <div
