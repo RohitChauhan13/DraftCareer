@@ -32,6 +32,9 @@ export function MainNav({ user, showDonation = true }: { user: MainNavUser; show
     if (!accountOpen) return;
 
     function closeOnOutsideClick(event: MouseEvent) {
+      if (event.target instanceof Element && event.target.closest("[role='dialog']")) {
+        return;
+      }
       if (!accountMenuRef.current?.contains(event.target as Node)) {
         setAccountOpen(false);
       }
