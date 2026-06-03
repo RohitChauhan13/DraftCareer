@@ -41,8 +41,6 @@ const nodes = [
   { x: 618, y: 152, label: "right"  }, // 6 Share link
 ] as const;
 
-// Path connecting them in order
-const svgPath = nodes.map((n, i) => `${i === 0 ? "M" : "L"}${n.x} ${n.y}`).join(" ");
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
@@ -169,30 +167,41 @@ function JourneyMap() {
           </linearGradient>
         </defs>
 
-        {/* ── Lines ── */}
-
-        {/* Soft glow behind the line */}
-        <path
-          d={svgPath}
-          stroke={`url(#${GRAD_ID})`}
-          strokeOpacity="0.18"
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Animated main line */}
-        <motion.path
-          d={svgPath}
-          stroke={`url(#${GRAD_ID})`}
-          strokeOpacity="0.9"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.6, ease: "easeInOut" }}
-        />
+        {/* ── Lines — trimmed to stop at circle edge ── */}
+        {nodes.slice(0, -1).map((a, i) => {
+          const b = nodes[i + 1];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const ux = dx / dist;
+          const uy = dy / dist;
+          const x1 = a.x + ux * R;
+          const y1 = a.y + uy * R;
+          const x2 = b.x - ux * R;
+          const y2 = b.y - uy * R;
+          const seg = `M${x1} ${y1} L${x2} ${y2}`;
+          return (
+            <g key={i}>
+              <path
+                d={seg}
+                stroke={`url(#${GRAD_ID})`}
+                strokeOpacity="0.18"
+                strokeWidth="10"
+                strokeLinecap="round"
+              />
+              <motion.path
+                d={seg}
+                stroke={`url(#${GRAD_ID})`}
+                strokeOpacity="0.9"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.4, ease: "easeInOut", delay: i * 0.22 }}
+              />
+            </g>
+          );
+        })}
 
         {/* ── Nodes ── */}
         {steps.map(({ Icon, label }, i) => {
