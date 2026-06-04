@@ -147,6 +147,16 @@ export function ResumeBuilder({
     return false;
   }
 
+  function validateResumeDetails() {
+    if (!validatePersonalDetails()) return false;
+    const educationErrors = getEducationScoreErrors();
+    if (educationErrors.length > 0) {
+      toast.warning(educationErrors[0]);
+      return false;
+    }
+    return true;
+  }
+
   function getPersonalValidationErrors() {
     const errors: Partial<Record<"email" | "phone", string>> = {};
     const email = data.personal.email.trim();
@@ -162,8 +172,23 @@ export function ResumeBuilder({
     return errors;
   }
 
+  function getEducationScoreErrors() {
+    return data.education.flatMap((item, index) => {
+      const value = item.cgpa.trim();
+      if (!value) return [];
+      const score = Number(value.replace(/%$/, ""));
+      if (!Number.isFinite(score)) {
+        return [`Education ${index + 1}: enter a valid ${(item.scoreType ?? "cgpa") === "percentage" ? "percentage" : "CGPA"}.`];
+      }
+      if ((item.scoreType ?? "cgpa") === "percentage") {
+        return score < 1 || score > 100 ? [`Education ${index + 1}: percentage must be between 1 and 100.`] : [];
+      }
+      return score < 1 || score > 10 ? [`Education ${index + 1}: CGPA must be between 1 and 10.`] : [];
+    });
+  }
+
   async function save() {
-    if (!validatePersonalDetails()) return;
+    if (!validateResumeDetails()) return;
     setSaving(true);
     try {
       const result = await persistResume();
@@ -179,7 +204,7 @@ export function ResumeBuilder({
 
   function requestAiEnhancement() {
     if (enhancing) return;
-    if (!validatePersonalDetails()) return;
+    if (!validateResumeDetails()) return;
     if (aiEnhanceUsage?.blocked) {
       toast.error("AI enhancement is blocked for your account.");
       return;
@@ -221,7 +246,7 @@ export function ResumeBuilder({
 
   function requestPdfDownload() {
     if (!resumeId || exporting) return;
-    if (!validatePersonalDetails()) return;
+    if (!validateResumeDetails()) return;
     setConfirmDownload(true);
   }
 
@@ -1048,13 +1073,27 @@ async function downloadPdf() {
             ))}
           </Collection>
 
-          <Collection title="Education" items={data.education} addLabel="Add education" actions={<SectionVisibilityToggle hidden={isSectionHidden("education")} sectionName="education" onToggle={() => toggleSectionVisibility("education")} />} onAdd={() => setData({ ...data, education: [...data.education, { college: "", degree: "", cgpa: "", startDate: "", endDate: "", description: "" }] })}>
+          <Collection title="Education" items={data.education} addLabel="Add education" actions={<SectionVisibilityToggle hidden={isSectionHidden("education")} sectionName="education" onToggle={() => toggleSectionVisibility("education")} />} onAdd={() => setData({ ...data, education: [...data.education, { college: "", degree: "", cgpa: "", scoreType: "cgpa", startDate: "", endDate: "", description: "" }] })}>
+            {getEducationScoreErrors().length > 0 && (
+              <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                {getEducationScoreErrors()[0]}
+              </p>
+            )}
             {data.education.map((item, index) => (
               <CollectionItem key={index} title={`Education ${index + 1}`} onRemove={() => removeArrayItem("education", index)}>
                 <Grid>
                   <Input placeholder="College" value={item.college} onChange={(e) => updateArray("education", index, { college: e.target.value })} />
                   <Input placeholder="Degree" value={item.degree} onChange={(e) => updateArray("education", index, { degree: e.target.value })} />
-                  <Input placeholder="CGPA" value={item.cgpa} onChange={(e) => updateArray("education", index, { cgpa: e.target.value })} />
+                  <div className="grid gap-2 sm:grid-cols-[160px_1fr]">
+                    <ScoreTypePicker value={item.scoreType ?? "cgpa"} onChange={(value) => updateArray("education", index, { scoreType: value })} />
+                    <Input
+                      className={isEducationScoreInvalid(item) ? "border-amber-300 bg-amber-50/60" : undefined}
+                      inputMode="decimal"
+                      placeholder={(item.scoreType ?? "cgpa") === "percentage" ? "Percentage" : "CGPA"}
+                      value={item.cgpa}
+                      onChange={(e) => updateArray("education", index, { cgpa: e.target.value })}
+                    />
+                  </div>
                   <DateField label="Start month" value={item.startDate} onChange={(value) => updateArray("education", index, { startDate: value })} />
                   <DateField label="End month" value={item.endDate} onChange={(value) => updateArray("education", index, { endDate: value })} />
                   <Textarea placeholder="Description" rows={3} value={item.description} onChange={(e) => updateArray("education", index, { description: e.target.value })} />
@@ -1416,6 +1455,23 @@ function SectionVisibilityToggle({ hidden, sectionName, onToggle }: { hidden: bo
   );
 }
 
+function ScoreTypePicker({ value, onChange }: { value: "cgpa" | "percentage"; onChange: (value: "cgpa" | "percentage") => void }) {
+  return (
+    <div className="grid grid-cols-2 rounded-md border border-border bg-muted/40 p-1">
+      {(["cgpa", "percentage"] as const).map((item) => (
+        <button
+          className={`h-8 rounded text-xs font-black uppercase transition ${value === item ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-surface hover:text-foreground"}`}
+          key={item}
+          type="button"
+          onClick={() => onChange(item)}
+        >
+          {item === "cgpa" ? "CGPA" : "%"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Collection<T>({ title, children, onAdd, addLabel, actions }: { title: string; items: T[]; children: React.ReactNode; onAdd: () => void; addLabel: string; actions?: React.ReactNode }) {
   return (
     <Panel title={title} actions={actions}>
@@ -1514,6 +1570,16 @@ function formatMonthLabel(value: string) {
 
 function formatPersonalField(field: typeof requiredPersonalFields[number]) {
   return field.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function isEducationScoreInvalid(item: ResumeData["education"][number]) {
+  const value = item.cgpa.trim();
+  if (!value) return false;
+  const score = Number(value.replace(/%$/, ""));
+  if (!Number.isFinite(score)) return true;
+  return (item.scoreType ?? "cgpa") === "percentage"
+    ? score < 1 || score > 100
+    : score < 1 || score > 10;
 }
 
 function getEnhanceConfirmDescription({

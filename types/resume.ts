@@ -44,6 +44,7 @@ export type Education = {
   college: string;
   degree: string;
   cgpa: string;
+  scoreType?: "cgpa" | "percentage";
   startDate: string;
   endDate: string;
   description: string;

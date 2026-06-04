@@ -181,6 +181,7 @@ function normalizeEducation(value: unknown): ResumeData["education"] {
         college: typeof education.college === "string" ? education.college : "",
         degree: typeof education.degree === "string" ? education.degree : "",
         cgpa: typeof education.cgpa === "string" ? education.cgpa : "",
+        scoreType: education.scoreType === "percentage" ? "percentage" as const : "cgpa" as const,
         startDate: typeof education.startDate === "string" ? education.startDate : "",
         endDate: typeof education.endDate === "string" ? education.endDate : "",
         description: typeof education.description === "string" ? education.description : ""

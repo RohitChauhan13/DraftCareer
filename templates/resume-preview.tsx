@@ -314,7 +314,7 @@ function ResumeSections({
       )}
       {!isSectionHidden(data, "education") && data.education.length > 0 && (
         <Section title="Education" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
-          {data.education.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.college}-${index}`} title={item.degree} meta={[item.college, formatRange(item.startDate, item.endDate), item.cgpa ? `CGPA ${item.cgpa}` : ""].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
+          {data.education.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.college}-${index}`} title={item.degree} meta={[item.college, formatRange(item.startDate, item.endDate), formatEducationScore(item)].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
         </Section>
       )}
       {!isSectionHidden(data, "certifications") && data.certifications.length > 0 && (
@@ -523,6 +523,12 @@ function getInitialsPositionClass(data: ResumeData) {
   if (data.initialsStyle.position === "center") return "justify-center";
   if (data.initialsStyle.position === "right") return "justify-end";
   return "justify-start";
+}
+
+function formatEducationScore(item: ResumeData["education"][number]) {
+  if (!item.cgpa) return "";
+  if ((item.scoreType ?? "cgpa") === "percentage") return item.cgpa;
+  return item.cgpa.includes("/") ? item.cgpa : `${item.cgpa}/10`;
 }
 
 function getInitialsBoxStyle(data: ResumeData, defaultBoxColor?: string): CSSProperties {

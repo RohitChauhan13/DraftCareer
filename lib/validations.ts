@@ -68,6 +68,44 @@ const themeIdSchema = z.enum(["purple", "charcoal", "taupe", "navy", "blue", "te
 const templateIdSchema = z.enum(["modern", "ats", "minimal", "developer", "classic", "executive", "timeline", "compact", "editorial", "accent", "split", "mono"]);
 const resumeSectionKeySchema = z.enum(["summary", "skills", "experience", "projects", "education", "certifications", "achievements"]);
 const hexColorSchema = z.string().regex(/^#[0-9a-f]{6}$/i);
+const educationItemSchema = z.object({
+  college: z.string().max(160).default(""),
+  degree: z.string().max(160).default(""),
+  cgpa: z.string().max(40).default(""),
+  scoreType: z.enum(["cgpa", "percentage"]).default("cgpa"),
+  startDate: z.string().max(40).default(""),
+  endDate: z.string().max(40).default(""),
+  description: z.string().max(800).default("")
+}).superRefine((value, context) => {
+  const scoreValue = value.cgpa.trim();
+  if (!scoreValue) return;
+
+  const score = Number(scoreValue.replace(/%$/, ""));
+  if (!Number.isFinite(score)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Enter a valid ${value.scoreType === "percentage" ? "percentage" : "CGPA"}.`,
+      path: ["cgpa"]
+    });
+    return;
+  }
+
+  if (value.scoreType === "percentage" && (score < 1 || score > 100)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Percentage must be between 1 and 100.",
+      path: ["cgpa"]
+    });
+  }
+
+  if (value.scoreType === "cgpa" && (score < 1 || score > 10)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "CGPA must be between 1 and 10.",
+      path: ["cgpa"]
+    });
+  }
+});
 
 export const resumeDataSchema = z.object({
   title: z.string().trim().min(1).max(100),
@@ -103,14 +141,7 @@ export const resumeDataSchema = z.object({
   }),
   summary: z.string().max(600).default(""),
   skills: z.array(z.string().trim().min(1).max(80)).max(40).default([]),
-  education: z.array(z.object({
-    college: z.string().max(160).default(""),
-    degree: z.string().max(160).default(""),
-    cgpa: z.string().max(40).default(""),
-    startDate: z.string().max(40).default(""),
-    endDate: z.string().max(40).default(""),
-    description: z.string().max(800).default("")
-  })).max(12).default([]),
+  education: z.array(educationItemSchema).max(12).default([]),
   experience: z.array(z.object({
     company: z.string().max(160).default(""),
     role: z.string().max(160).default(""),

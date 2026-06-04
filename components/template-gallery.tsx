@@ -91,6 +91,7 @@ export function TemplateGallery({
         college: "Oxford Software Institute & Oxford School of English",
         degree: "Diploma in Financial Accounting",
         cgpa: "",
+        scoreType: "cgpa",
         startDate: "",
         endDate: "2016-01",
         description: ""

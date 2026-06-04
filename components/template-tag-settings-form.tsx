@@ -124,6 +124,7 @@ function createTemplatePreviewData(templateId: TemplateId): ResumeData {
       college: "Bharati Vidyapeeth",
       degree: "BCA",
       cgpa: "",
+      scoreType: "cgpa",
       startDate: "2022-01",
       endDate: "2025-01",
       description: ""
