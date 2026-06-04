@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FullScreenLoader } from "@/components/page-loader";
@@ -15,10 +16,13 @@ export function LogoutButton() {
   async function logout() {
     setLoading(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error("Logout failed");
+      setConfirmOpen(false);
       router.replace("/login");
       router.refresh();
-    } finally {
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Logout failed");
       setLoading(false);
       setConfirmOpen(false);
     }

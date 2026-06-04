@@ -88,12 +88,12 @@ export function AuthForm({ loginReason, mode, showDonation = true }: { loginReas
         setNeedsOtp(true);
         startResendCooldown();
         toast.success("OTP sent");
+        setLoading(false);
       } else {
         router.replace("/dashboard");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Try again");
-    } finally {
       setLoading(false);
     }
   }
@@ -190,12 +190,12 @@ export function AuthForm({ loginReason, mode, showDonation = true }: { loginReas
       if (view === "forgot") {
         setView("login");
         setNeedsOtp(false);
+        setLoading(false);
       } else {
         router.replace("/dashboard");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Invalid OTP");
-    } finally {
       setLoading(false);
     }
   }

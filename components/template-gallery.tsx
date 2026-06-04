@@ -182,8 +182,8 @@ export function TemplateGallery({
         </div>
       </header>
 
-      <section className="bg-gradient-to-b from-background via-background to-muted px-4 py-8">
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-2 xl:grid-cols-3">
+      <section className="bg-gradient-to-b from-background via-background to-muted px-4 py-6">
+        <div className="mx-auto grid max-w-7xl gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {resumeTemplates
             .filter((template) => templateTagSettings.find((setting) => setting.templateId === template.id)?.isVisible ?? true)
             .map((template) => (
@@ -204,20 +204,20 @@ export function TemplateGallery({
 
 function TemplateCard({ data, templateId, tag, choosing, onChoose }: { data: ResumeData; templateId: TemplateId; tag: TemplateTag | null; choosing: boolean; onChoose: (templateId: TemplateId) => void }) {
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-border bg-surface shadow-soft">
+    <div className="group relative overflow-hidden rounded-lg border border-border bg-surface shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft">
       {tag && (
-        <div className={`absolute right-5 top-5 z-10 rounded-md px-10 py-2 text-sm font-bold shadow ${templateTagClassName(tag)}`}>
+        <div className={`absolute right-3 top-3 z-10 rounded-md px-4 py-1.5 text-xs font-bold shadow ${templateTagClassName(tag)}`}>
           {templateTagLabel(tag)}
         </div>
       )}
-      <div className="relative h-[560px] overflow-hidden bg-slate-50 dark:bg-slate-950">
-        <div className="absolute left-1/2 top-0 w-[816px] origin-top" style={{ transform: "translateX(-50%) scale(0.48)" }}>
+      <div className="relative h-[430px] overflow-hidden bg-slate-50 dark:bg-slate-950">
+        <div className="absolute left-1/2 top-0 w-[816px] origin-top" style={{ transform: "translateX(-50%) scale(0.35)" }}>
           <ResumePreview data={data} zoom={1} compact />
         </div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-surface via-surface/95 to-transparent px-6 pb-5 pt-16">
+      <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-surface via-surface/95 to-transparent px-4 pb-4 pt-14">
         <button
-          className="inline-flex h-14 min-w-72 items-center justify-center rounded-full bg-blue-600 px-8 text-lg font-bold text-white shadow-lg transition group-hover:bg-blue-700"
+          className="inline-flex h-11 w-full max-w-60 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-bold text-white shadow-lg transition group-hover:bg-blue-700"
           disabled={choosing}
           onClick={() => onChoose(templateId)}
         >

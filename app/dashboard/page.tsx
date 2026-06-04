@@ -19,28 +19,24 @@ export const metadata = {
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login?reason=dashboard");
-  const donationSettings = await getDonationSettings();
 
-  const resumes = await prisma.resume.findMany({
-    where: { userId: user.id },
-    select: {
-      id: true,
-      title: true,
-      templateId: true,
-      isPinned: true,
-      updatedAt: true,
-      sections: {
-        select: {
-          sectionType: true,
-          contentJson: true
-        }
-      }
-    },
-    orderBy: [
-      { isPinned: "desc" },
-      { updatedAt: "desc" }
-    ]
-  });
+  const [donationSettings, resumes] = await Promise.all([
+    getDonationSettings(),
+    prisma.resume.findMany({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        title: true,
+        templateId: true,
+        isPinned: true,
+        updatedAt: true
+      },
+      orderBy: [
+        { isPinned: "desc" },
+        { updatedAt: "desc" }
+      ]
+    })
+  ]);
   const dashboardResumes = resumes.map((resume) => ({
     ...resume,
     isPinned: Boolean(resume.isPinned)

@@ -38,15 +38,10 @@ export async function clearSessionCookie() {
 }
 
 export async function getSessionUserId() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (!token) return null;
+  const userId = await getSessionPayloadUserId();
+  if (!userId) return null;
 
   try {
-    const verified = await jwtVerify(token, jwtSecret());
-    const userId = verified.payload.userId;
-    if (typeof userId !== "string") return null;
-
     const users = await prisma.$queryRaw<Array<{
       id: string;
       isBlocked: boolean;
@@ -69,7 +64,7 @@ export async function getSessionUserId() {
 }
 
 export async function getCurrentUser() {
-  const userId = await getSessionUserId();
+  const userId = await getSessionPayloadUserId();
   if (!userId) return null;
 
   const users = await prisma.$queryRaw<Array<{
@@ -90,4 +85,17 @@ export async function getCurrentUser() {
   const user = users[0] ?? null;
   if (!user || user.isBlocked || !user.emailVerified) return null;
   return user;
+}
+
+async function getSessionPayloadUserId() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (!token) return null;
+
+  try {
+    const verified = await jwtVerify(token, jwtSecret());
+    return typeof verified.payload.userId === "string" ? verified.payload.userId : null;
+  } catch {
+    return null;
+  }
 }

@@ -77,10 +77,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       WHERE id = ${id} AND user_id = ${userId}
     `;
 
-    const resume = await prisma.resume.findUniqueOrThrow({
-      where: { id },
-      include: { sections: true }
-    });
+    const resume = await prisma.resume.findUniqueOrThrow({ where: { id } });
 
     return ok({ resume });
   } catch (error) {

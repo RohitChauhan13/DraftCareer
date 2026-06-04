@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save } from "lucide-react";
+import { Eye, EyeOff, Save } from "lucide-react";
 import { toast } from "sonner";
 import type { ResumeData, TemplateId, TemplateTag } from "@/types/resume";
 import type { TemplateTagSetting } from "@/lib/template-tags";
@@ -50,44 +50,53 @@ export function TemplateTagSettingsForm({ initialSettings }: { initialSettings: 
         </div>
       )}
 
-      <form className="space-y-4" onSubmit={saveSettings}>
-        {settings.map((setting) => {
-          const template = resumeTemplates.find((item) => item.id === setting.templateId);
-          return (
-            <div className="grid gap-4 rounded-md border border-border bg-muted/35 p-4 sm:grid-cols-[1fr_220px] sm:items-center" key={setting.templateId}>
-              <div className="grid grid-cols-[76px_1fr] items-center gap-4">
-                <div className="relative h-24 w-[74px] overflow-hidden rounded border border-border bg-slate-950">
-                  <div className="absolute left-1/2 top-0 w-[816px] origin-top" style={{ transform: "translateX(-50%) scale(0.092)" }}>
+      <form className="space-y-5" onSubmit={saveSettings}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {settings.map((setting) => {
+            const template = resumeTemplates.find((item) => item.id === setting.templateId);
+            return (
+              <div className={`overflow-hidden rounded-lg border bg-surface shadow-sm transition ${setting.isVisible ? "border-border" : "border-dashed border-border opacity-70"}`} key={setting.templateId}>
+                <div className="relative h-32 overflow-hidden border-b border-border bg-slate-100 dark:bg-slate-950">
+                  <div className="absolute left-1/2 top-0 w-[816px] origin-top" style={{ transform: "translateX(-50%) scale(0.155)" }}>
                     <ResumePreview data={createTemplatePreviewData(setting.templateId)} zoom={1} compact appearance="light" />
                   </div>
+                  <button
+                    className={`absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-md border text-white shadow-sm transition ${setting.isVisible ? "border-primary bg-primary hover:bg-primary/90" : "border-slate-700 bg-slate-900/85 hover:bg-slate-800"}`}
+                    title={setting.isVisible ? "Hide from gallery" : "Show in gallery"}
+                    type="button"
+                    onClick={() => updateSetting(setting.templateId, { isVisible: !setting.isVisible })}
+                  >
+                    {setting.isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                  {setting.tag && (
+                    <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-black text-slate-900 shadow-sm">
+                      {templateTagOptions.find((option) => option.value === setting.tag)?.label ?? setting.tag}
+                    </span>
+                  )}
                 </div>
-                <span>
-                  <span className="block text-sm font-semibold">{template?.label ?? setting.templateId}</span>
-                  <span className="text-xs text-muted-foreground">{setting.templateId}</span>
-                </span>
+                <div className="space-y-2.5 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black leading-tight">{template?.label ?? setting.templateId}</p>
+                    <p className="text-xs font-medium text-muted-foreground">{setting.templateId}</p>
+                  </div>
+                  <select
+                    className="h-9 w-full rounded-md border border-border bg-surface px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/25"
+                    value={setting.tag ?? ""}
+                    onChange={(event) => updateSetting(setting.templateId, { tag: event.target.value ? event.target.value as TemplateTag : null })}
+                  >
+                    <option value="">No tag</option>
+                    {templateTagOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                  <div className={`rounded-md px-2.5 py-1.5 text-xs font-bold ${setting.isVisible ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                    {setting.isVisible ? "Visible in gallery" : "Hidden from gallery"}
+                  </div>
+                </div>
               </div>
-              <select
-                className="h-10 rounded-md border border-border bg-surface px-3 text-sm outline-none focus:ring-2 focus:ring-primary/25"
-                value={setting.tag ?? ""}
-                onChange={(event) => updateSetting(setting.templateId, { tag: event.target.value ? event.target.value as TemplateTag : null })}
-              >
-                <option value="">No tag</option>
-                {templateTagOptions.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <input
-                  checked={setting.isVisible}
-                  className="h-4 w-4 accent-primary"
-                  type="checkbox"
-                  onChange={(event) => updateSetting(setting.templateId, { isVisible: event.target.checked })}
-                />
-                Show in gallery
-              </label>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
 
         <Button disabled={saving} type="submit">
           <Save size={16} /> Save template settings

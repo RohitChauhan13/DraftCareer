@@ -56,7 +56,7 @@ export default async function AdminFeedbackPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <MainNav user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />
-      <section className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
+      <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Link className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition hover:text-foreground" href="/stats">

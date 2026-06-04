@@ -115,10 +115,10 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
 
   function renderActions(row: StatsUserRow, compact = false) {
     const aiState = getAiState(row, enhanceState);
-    const buttonSizeClass = compact ? "h-8 w-8" : undefined;
+    const buttonSizeClass = compact ? "h-8 w-8" : "h-8 w-8";
 
     return (
-      <div className={`flex items-center ${compact ? "justify-end gap-1" : "gap-2"}`}>
+      <div className={`flex items-center ${compact ? "justify-end gap-1" : "justify-center gap-1.5"}`}>
         <Button
           className={buttonSizeClass}
           loading={enhanceAction === `${row.id}-reset`}
@@ -128,7 +128,7 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
           variant="secondary"
           onClick={() => setConfirmEnhanceAction({ user: row, action: "reset" })}
         >
-          <RotateCcw size={15} />
+          <RotateCcw size={14} />
         </Button>
         <Button
           className={`${aiState.blocked ? "border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700" : "border-amber-500 bg-amber-500 text-white hover:bg-amber-600"} ${buttonSizeClass ?? ""}`.trim()}
@@ -139,7 +139,7 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
           variant="secondary"
           onClick={() => setConfirmEnhanceAction({ user: row, action: "block" })}
         >
-          {aiState.blocked ? <ShieldCheck size={15} /> : <ZapOff size={15} />}
+          {aiState.blocked ? <ShieldCheck size={14} /> : <ZapOff size={14} />}
         </Button>
         <UserBlockButton
           className={buttonSizeClass}
@@ -243,11 +243,11 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
 
         <div className="hidden w-full max-w-full min-w-0 overflow-hidden md:block">
           <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-[1120px] border-collapse text-left text-sm lg:min-w-[1240px]">
+          <table className="w-full min-w-[1120px] border-collapse text-sm lg:min-w-[1180px]">
             <thead className="border-y border-border bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 font-bold">Action</th>
-                <SortableHead activeKey={sortKey} direction={sortDirection} label="User" sortKey="name" onSort={updateSort} />
+                <th className="sticky left-0 z-30 w-[124px] bg-muted px-3 py-3 text-center font-bold">Action</th>
+                <SortableHead activeKey={sortKey} className="sticky left-[124px] z-30 w-[280px] bg-muted" direction={sortDirection} label="User" sortKey="name" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Resumes" sortKey="resumeCount" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Public" sortKey="publicResumeCount" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Private" sortKey="privateResumeCount" onSort={updateSort} />
@@ -260,33 +260,33 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
             </thead>
             <tbody className="divide-y divide-border">
               {filteredRows.map((row) => (
-                <tr className="bg-surface transition hover:bg-muted/35" key={row.id}>
-                  <td className="px-4 py-3">
+                <tr className="group bg-surface transition hover:bg-muted/35" key={row.id}>
+                  <td className="sticky left-0 z-20 w-[124px] bg-surface px-3 py-3 transition group-hover:bg-muted/35">
                     {renderActions(row)}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="min-w-0">
+                  <td className="sticky left-[124px] z-20 w-[280px] bg-surface px-3 py-3 transition group-hover:bg-muted/35">
+                    <div className="min-w-0 text-left">
                       <p className="truncate font-semibold">{row.name}</p>
-                      <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                        <Mail size={12} /> {row.email}
+                      <p className="mt-0.5 flex max-w-[230px] items-center gap-1 truncate text-xs text-muted-foreground" title={row.email}>
+                        <Mail className="shrink-0" size={12} /> <span className="truncate">{row.email}</span>
                       </p>
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-bold">{row.resumeCount}</td>
-                  <td className="px-4 py-3">{row.publicResumeCount}</td>
-                  <td className="px-4 py-3">{row.privateResumeCount}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-4 py-3 text-center font-bold">{row.resumeCount}</td>
+                  <td className="px-4 py-3 text-center">{row.publicResumeCount}</td>
+                  <td className="px-4 py-3 text-center">{row.privateResumeCount}</td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-2">
                       <Sparkles className="text-primary" size={14} />
                       <span className="font-bold">{getAiState(row, enhanceState).dailyCount}</span>
                       {getAiState(row, enhanceState).blocked && <Badge tone="danger">AI blocked</Badge>}
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-bold">{row.aiEnhanceCount}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(row.createdAt)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(row.lastAppUseAt)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap">
+                  <td className="px-4 py-3 text-center font-bold">{row.aiEnhanceCount}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-center text-muted-foreground">{formatDate(row.createdAt)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-center text-muted-foreground">{formatDate(row.lastAppUseAt)}</td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex flex-nowrap items-center justify-center gap-2 whitespace-nowrap">
                       {row.isBlocked && <Badge tone="danger">Blocked</Badge>}
                       <Badge tone={row.emailVerified ? "success" : "muted"}>{row.emailVerified ? "Verified" : "Unverified"}</Badge>
                     </div>
@@ -355,9 +355,9 @@ function SortableHead({
   const Icon = active ? (direction === "asc" ? ArrowUp : ArrowDown) : ChevronsUpDown;
 
   return (
-    <th className={`px-4 py-3 font-bold ${className}`}>
+    <th className={`px-4 py-3 text-center font-bold ${className}`}>
       <button
-        className={`inline-flex items-center gap-1.5 whitespace-nowrap transition hover:text-foreground ${active ? "text-foreground" : ""}`}
+        className={`mx-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition hover:text-foreground ${active ? "text-foreground" : ""}`}
         type="button"
         onClick={() => onSort(sortKey)}
       >

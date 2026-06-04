@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowDown, CheckCircle2, FileText, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getDonationSettings } from "@/lib/donation";
-import { HomeGuideModal } from "@/components/home-guide-modal";
+import { LazyHomeGuideModal } from "@/components/lazy-home-guide-modal";
 import { MainNav } from "@/components/main-nav";
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://draft-career.vercel.app").replace(/\/$/, "");
@@ -69,8 +69,10 @@ const websiteStructuredData = {
 };
 
 export default async function HomePage() {
-  const user = await getCurrentUser();
-  const donationSettings = await getDonationSettings();
+  const [user, donationSettings] = await Promise.all([
+    getCurrentUser(),
+    getDonationSettings()
+  ]);
   const builderHref = user ? "/builder/new" : "/signup";
   const accountHref = user ? "/dashboard" : "/login";
 
@@ -81,7 +83,7 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([homeStructuredData, websiteStructuredData]) }}
       />
       <MainNav user={user ? { name: user.name, email: user.email, role: user.role } : null} showDonation={donationSettings.isPageVisible} />
-      <HomeGuideModal builderHref={builderHref} />
+      <LazyHomeGuideModal builderHref={builderHref} />
 
       <section className="relative">
         <div className="absolute inset-y-0 right-0 hidden w-[46%] bg-muted lg:block" />

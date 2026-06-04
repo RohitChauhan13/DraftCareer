@@ -73,16 +73,16 @@ export function AdminFeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:w-72">
+      <div className="grid grid-cols-2 gap-3 sm:w-64">
         <MiniMetric label="Total" value={items.length.toString()} />
         <MiniMetric label="Avg rating" value={averageRating ? averageRating.toFixed(1) : "0"} />
       </div>
 
       <Card className="overflow-hidden">
         <CardContent className="p-0">
-          <div className="relative border-b border-border bg-muted/30 p-4">
+          <div className="relative border-b border-border bg-muted/30 p-3">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.10)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.10)_1px,transparent_1px)] bg-[size:24px_24px]" />
-            <div className="relative grid gap-4 lg:grid-cols-[1fr_auto_auto] lg:items-end">
+            <div className="relative grid gap-3 lg:grid-cols-[minmax(260px,1fr)_auto_auto] lg:items-end">
               <label className="block">
                 <span className="mb-1 flex items-center gap-2 text-xs font-black uppercase text-muted-foreground">
                   <Search size={13} /> User
@@ -128,7 +128,7 @@ export function AdminFeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 text-sm">
             <p className="text-muted-foreground">
               Showing <span className="font-black text-foreground">{visibleRows.length}</span> of {items.length} notes
             </p>
@@ -160,36 +160,39 @@ export function AdminFeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visibleRows.map((item) => (
-            <Card className="overflow-hidden transition hover:border-primary/40 hover:shadow-[0_18px_45px_rgba(15,23,42,0.10)]" key={item.id}>
-              <CardHeader className="p-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <Card className="group overflow-hidden transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_18px_45px_rgba(15,23,42,0.10)]" key={item.id}>
+              <CardHeader className="p-3">
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="font-black">{item.userName}</h2>
-                      <Badge>{formatCategory(item.category)}</Badge>
-                      {!item.allowContact && <Badge muted>No contact</Badge>}
+                    <div className="flex min-w-0 items-center gap-2">
+                      <h2 className="truncate text-sm font-black">{item.userName}</h2>
+                      <Rating value={item.rating} />
                     </div>
-                    <p className="mt-1 flex items-center gap-1 truncate text-sm text-muted-foreground">
-                      <Mail size={14} /> {item.userEmail}
+                    <p className="mt-1 flex max-w-full items-center gap-1 truncate text-xs text-muted-foreground" title={item.userEmail}>
+                      <Mail className="shrink-0" size={13} /> <span className="truncate">{item.userEmail}</span>
                     </p>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-3">
-                    <Rating value={item.rating} />
-                    <span className="text-sm text-muted-foreground">{formatDate(item.createdAt)}</span>
-                    <button
-                      className="inline-flex h-9 items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 text-sm font-black text-red-700 transition hover:bg-red-100"
-                      type="button"
-                      onClick={() => setDeleteTarget(item)}
-                    >
-                      <Trash2 size={15} /> Delete
-                    </button>
-                  </div>
+                  <button
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-red-200 bg-red-50 text-red-700 transition hover:bg-red-100"
+                    title="Delete feedback"
+                    type="button"
+                    onClick={() => setDeleteTarget(item)}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <Badge>{formatCategory(item.category)}</Badge>
+                  {!item.allowContact && <Badge muted>No contact</Badge>}
+                  <span className="ml-auto text-xs font-medium text-muted-foreground">{formatDate(item.createdAt)}</span>
                 </div>
               </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <p className="whitespace-pre-wrap rounded-md border border-border bg-muted/35 p-4 text-sm leading-6">{item.message}</p>
+              <CardContent className="p-3 pt-0">
+                <p className="line-clamp-5 min-h-[104px] whitespace-pre-wrap rounded-md border border-border bg-muted/35 p-3 text-sm leading-5" title={item.message}>
+                  {item.message}
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -218,9 +221,9 @@ export function AdminFeedbackInbox({ rows }: { rows: AdminFeedbackRow[] }) {
 
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-4 shadow-soft">
+    <div className="rounded-lg border border-border bg-surface p-3 shadow-sm">
       <p className="text-xs font-black uppercase text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-black">{value}</p>
+      <p className="mt-1 text-xl font-black">{value}</p>
     </div>
   );
 }
@@ -228,7 +231,7 @@ function MiniMetric({ label, value }: { label: string; value: string }) {
 function FilterChip({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
     <button
-      className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-black transition ${
+      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-black transition ${
         active
           ? "border-primary bg-primary text-primary-foreground shadow-sm"
           : "border-border bg-surface text-muted-foreground hover:border-primary/45 hover:text-foreground"
@@ -243,9 +246,9 @@ function FilterChip({ active, children, onClick }: { active: boolean; children: 
 
 function Rating({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700">
-      <Star fill="currentColor" size={14} />
-      <span className="text-sm font-black">{value}/5</span>
+    <div className="flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">
+      <Star fill="currentColor" size={12} />
+      <span className="text-xs font-black">{value}/5</span>
     </div>
   );
 }

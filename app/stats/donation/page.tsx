@@ -26,7 +26,7 @@ export default async function StatsDonationPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <MainNav user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />
-      <section className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+      <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         <Link className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground transition hover:text-foreground" href="/stats">
           <ArrowLeft size={16} /> Back to stats
         </Link>

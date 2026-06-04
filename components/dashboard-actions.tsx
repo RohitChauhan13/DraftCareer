@@ -6,14 +6,12 @@ import { toast } from "sonner";
 import { Copy, Pin, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { resumeDataFromSections, sectionsFromResumeData } from "@/utils/resume";
 
 type ResumeRecord = {
   id: string;
   title: string;
   templateId: string;
   isPinned: boolean;
-  sections: { sectionType: string; contentJson: unknown }[];
 };
 
 export function DashboardActions({ resume }: { resume: ResumeRecord }) {
@@ -43,16 +41,7 @@ export function DashboardActions({ resume }: { resume: ResumeRecord }) {
   async function duplicate() {
     setAction("duplicate");
     try {
-      const data = resumeDataFromSections(resume);
-      const response = await fetch("/api/resumes", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          title: `${resume.title} Copy`,
-          templateId: data.templateId,
-          sections: sectionsFromResumeData({ ...data, title: `${resume.title} Copy` })
-        })
-      });
+      const response = await fetch(`/api/resumes/${resume.id}/duplicate`, { method: "POST" });
       if (!response.ok) {
         toast.error("Duplicate failed");
         return;
