@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, CalendarClock, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, Redo2, RotateCcw, Save, Sparkles, Target, Undo2, X } from "lucide-react";
+import { ArrowLeft, CalendarClock, Check, ChevronDown, Copy, Download, Eye, EyeOff, FileDiff, GripVertical, LayoutTemplate, Minus, Plus, Redo2, RotateCcw, Save, Sparkles, Target, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
 import type { ResumeData, ResumeSectionKey, ResumeTextColorKey, TemplateId } from "@/types/resume";
@@ -76,6 +76,7 @@ export function ResumeBuilder({
   const [targetJobEnabled, setTargetJobEnabled] = useState(false);
   const [targetJobRequirement, setTargetJobRequirement] = useState("");
   const [aiEnhanceHistory, setAiEnhanceHistory] = useState<AiEnhanceHistory>(null);
+  const [aiDiffOpen, setAiDiffOpen] = useState(false);
   const [aiEnhanceUsage, setAiEnhanceUsage] = useState<AiEnhanceUsage | undefined>(initialAiEnhanceUsage);
   const [exporting, setExporting] = useState(false);
   const [confirmDownload, setConfirmDownload] = useState(false);
@@ -350,6 +351,7 @@ async function downloadPdf() {
       await waitForStage();
       setAiEnhanceHistory({ before: data, after: result.resume, state: "applied" });
       setData(result.resume);
+      setAiDiffOpen(true);
       if (result.usage) setAiEnhanceUsage(result.usage);
       toast.success(typeof result.usage?.remaining === "number" ? `Enhanced for ATS. ${result.usage.remaining} chances left today.` : "Enhanced for ATS");
     } catch (error) {
@@ -495,6 +497,16 @@ async function downloadPdf() {
             </Button>
             {aiEnhanceHistory && (
               <div className="flex items-center gap-1 rounded-md border border-border bg-surface p-1">
+                <Button
+                  disabled={saving || exporting || enhancing}
+                  size="icon"
+                  title="View AI Enhancements"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setAiDiffOpen(true)}
+                >
+                  <FileDiff size={16} />
+                </Button>
                 <Button
                   disabled={saving || exporting || enhancing || aiEnhanceHistory.state === "undone"}
                   size="icon"
@@ -652,6 +664,14 @@ async function downloadPdf() {
         }}
         onConfirm={toggleShare}
       />
+
+      {aiEnhanceHistory && (
+        <AiDiffModal
+          history={aiEnhanceHistory}
+          open={aiDiffOpen}
+          onClose={() => setAiDiffOpen(false)}
+        />
+      )}
 
       {cropImage && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="crop-title">
@@ -1682,6 +1702,211 @@ function EnhanceConfirmContent({
       </div>
     </div>
   );
+}
+
+function AiDiffModal({
+  history,
+  open,
+  onClose
+}: {
+  history: NonNullable<AiEnhanceHistory>;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const groups = buildResumeDiffGroups(history.before, history.after);
+  if (!open) return null;
+
+  return (
+    <div
+      aria-labelledby="ai-diff-title"
+      aria-modal="true"
+      className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 px-3 py-5 backdrop-blur-sm"
+      role="dialog"
+      onMouseDown={onClose}
+    >
+      <div
+        className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-surface text-surface-foreground shadow-soft"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-black text-primary">
+              <FileDiff size={14} /> AI Enhancements
+            </p>
+            <h2 className="mt-2 text-lg font-black" id="ai-diff-title">Resume preview after AI enhancement</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Red was removed. Green was added. You can close this and reopen it anytime from the AI controls.
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className={`rounded-full px-2.5 py-1 text-xs font-black ${history.state === "applied" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+              {history.state === "applied" ? "AI enhancement applied" : "AI enhancement undone"}
+            </span>
+            <button
+              aria-label="Close "
+              className="grid h-9 w-9 place-items-center rounded-md text-muted-foreground transition hover:bg-muted"
+              type="button"
+              onClick={onClose}
+            >
+              <X size={17} />
+            </button>
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/35 p-3 sm:p-5">
+          {groups.length === 0 ? (
+            <div className="grid min-h-56 place-items-center rounded-lg border border-dashed border-border text-center">
+              <div>
+                <Sparkles className="mx-auto text-primary" size={30} />
+                <p className="mt-3 font-black">No text changes found</p>
+                <p className="mt-1 text-sm text-muted-foreground">The AI response matched your existing editable content.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-4 xl:grid-cols-2">
+              <div className="overflow-hidden rounded-lg border border-border bg-slate-100 dark:bg-slate-900">
+                <div className="flex items-center justify-between border-b border-border bg-surface px-3 py-2">
+                  <span className="text-xs font-black uppercase text-red-600">Before enhancement</span>
+                  <span className="text-xs text-muted-foreground">Removed text is red</span>
+                </div>
+                <div className="overflow-auto p-4">
+                  <ResumePreview data={history.before} zoom={0.62} compact appearance="light" fitContent diff={{ side: "before", otherData: history.after }} />
+                </div>
+              </div>
+              <div className="overflow-hidden rounded-lg border border-border bg-slate-100 dark:bg-slate-900">
+                <div className="flex items-center justify-between border-b border-border bg-surface px-3 py-2">
+                  <span className="text-xs font-black uppercase text-emerald-600">After enhancement</span>
+                  <span className="text-xs text-muted-foreground">Added text is green</span>
+                </div>
+                <div className="overflow-auto p-4">
+                  <ResumePreview data={history.after} zoom={0.62} compact appearance="light" fitContent diff={{ side: "after", otherData: history.before }} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end border-t border-border p-4">
+          <Button type="button" onClick={onClose}>Done</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type DiffRow = {
+  type: "same" | "removed" | "added";
+  before?: string;
+  after?: string;
+};
+
+type DiffGroup = {
+  title: string;
+  rows: DiffRow[];
+};
+
+function buildResumeDiffGroups(before: ResumeData, after: ResumeData): DiffGroup[] {
+  const beforeSections = resumeTextSections(before);
+  const afterSections = resumeTextSections(after);
+
+  return beforeSections.flatMap((section, index) => {
+    const afterSection = afterSections[index];
+    if (!afterSection || section.lines.join("\n") === afterSection.lines.join("\n")) return [];
+
+    return [{
+      title: section.title,
+      rows: diffLines(section.lines, afterSection.lines)
+    }];
+  });
+}
+
+function resumeTextSections(data: ResumeData) {
+  return [
+    { title: "Summary", lines: cleanLines([data.summary]) },
+    { title: "Skills", lines: cleanLines(data.skills.map((skill) => `- ${skill}`)) },
+    {
+      title: "Experience",
+      lines: cleanLines(data.experience.flatMap((item) => [
+        `${item.role}${item.company ? ` at ${item.company}` : ""}`,
+        item.description
+      ]))
+    },
+    {
+      title: "Projects",
+      lines: cleanLines(data.projects.flatMap((item) => [
+        item.name,
+        item.technologies ? `Tech: ${item.technologies}` : "",
+        item.description
+      ]))
+    },
+    {
+      title: "Education",
+      lines: cleanLines(data.education.flatMap((item) => [
+        `${item.degree}${item.college ? `, ${item.college}` : ""}`,
+        item.cgpa ? `${item.scoreType === "percentage" ? "Percentage" : "CGPA"}: ${item.cgpa}` : "",
+        item.description
+      ]))
+    },
+    {
+      title: "Certifications",
+      lines: cleanLines(data.certifications.flatMap((item) => [
+        `${item.name}${item.provider ? `, ${item.provider}` : ""}`,
+        item.description
+      ]))
+    },
+    {
+      title: "Achievements",
+      lines: cleanLines(data.achievements.flatMap((item) => [
+        item.title,
+        item.description
+      ]))
+    }
+  ];
+}
+
+function cleanLines(lines: string[]) {
+  return lines.map((line) => line.trim()).filter(Boolean);
+}
+
+function diffLines(before: string[], after: string[]): DiffRow[] {
+  const table = Array.from({ length: before.length + 1 }, () => Array(after.length + 1).fill(0) as number[]);
+
+  for (let i = before.length - 1; i >= 0; i -= 1) {
+    for (let j = after.length - 1; j >= 0; j -= 1) {
+      table[i][j] = before[i] === after[j]
+        ? table[i + 1][j + 1] + 1
+        : Math.max(table[i + 1][j], table[i][j + 1]);
+    }
+  }
+
+  const rows: DiffRow[] = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < before.length && j < after.length) {
+    if (before[i] === after[j]) {
+      rows.push({ type: "same", before: before[i], after: after[j] });
+      i += 1;
+      j += 1;
+    } else if (table[i + 1][j] >= table[i][j + 1]) {
+      rows.push({ type: "removed", before: before[i] });
+      i += 1;
+    } else {
+      rows.push({ type: "added", after: after[j] });
+      j += 1;
+    }
+  }
+
+  while (i < before.length) {
+    rows.push({ type: "removed", before: before[i] });
+    i += 1;
+  }
+  while (j < after.length) {
+    rows.push({ type: "added", after: after[j] });
+    j += 1;
+  }
+
+  return rows;
 }
 
 function EnhanceErrorContent({ message }: { message: string | null }) {

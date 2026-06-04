@@ -19,19 +19,25 @@ const templateFonts: Record<HardcodedTemplateId, string> = {
 };
 
 type ResumePreviewAppearance = "system" | "light";
+type ResumePreviewDiff = {
+  side: "before" | "after";
+  otherData: ResumeData;
+};
 
 export function ResumePreview({
   data,
   zoom = 1,
   compact = false,
   appearance = "system",
-  fitContent = false
+  fitContent = false,
+  diff
 }: {
   data: ResumeData;
   zoom?: number;
   compact?: boolean;
   appearance?: ResumePreviewAppearance;
   fitContent?: boolean;
+  diff?: ResumePreviewDiff;
 }) {
   const theme = getTheme(data.themeId);
   const accent = data.themeColor ?? theme.color;
@@ -47,9 +53,9 @@ export function ResumePreview({
   );
   const paperColorStyle = colorStyle(data.textColors.background, "backgroundColor");
   const paperContent = ["developer", "split"].includes(data.templateId) ? (
-    <SidebarResume data={data} accent={accent} allowDark={allowDark} fitContent={fitContent} inverted={data.templateId === "split"} />
+    <SidebarResume data={data} accent={accent} allowDark={allowDark} diff={diff} fitContent={fitContent} inverted={data.templateId === "split"} />
   ) : (
-    <StandardResume data={data} accent={accent} allowDark={allowDark} fitContent={fitContent} />
+    <StandardResume data={data} accent={accent} allowDark={allowDark} diff={diff} fitContent={fitContent} />
   );
 
   if (fitContent) {
@@ -77,7 +83,7 @@ export function ResumePreview({
   );
 }
 
-function StandardResume({ data, accent, allowDark, fitContent = false }: { data: ResumeData; accent: string; allowDark: boolean; fitContent?: boolean }) {
+function StandardResume({ data, accent, allowDark, diff, fitContent = false }: { data: ResumeData; accent: string; allowDark: boolean; diff?: ResumePreviewDiff; fitContent?: boolean }) {
   const personal = data.personal;
   const nameStyle = colorStyle(data.textColors.name);
   const initialsStyle = getInitialsBoxStyle(data);
@@ -88,7 +94,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
       <div className="px-12 py-9 text-center">
         <h1 className="text-3xl font-bold uppercase tracking-normal" style={{ color: data.textColors.name ?? accent }}>{personal.fullName || "Your Name"}</h1>
         <ContactRow personal={personal} allowDark={allowDark} className={cn("justify-center border-b border-t border-slate-200 py-2", allowDark && "dark:border-slate-700")} />
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} centered />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} centered diff={diff} />
       </div>
     );
   }
@@ -101,7 +107,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
           <ContactRow personal={personal} allowDark={allowDark} className="justify-end text-right" />
         </header>
         <div className="h-3 w-40" style={{ backgroundColor: accent }} />
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} airy />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} airy diff={diff} />
       </div>
     );
   }
@@ -111,7 +117,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
       <div className="px-14 py-10">
         <h1 className={cn("border-b border-slate-300 pb-2 text-4xl font-semibold uppercase tracking-normal", allowDark && "dark:border-slate-700")} style={nameStyle}>{personal.fullName || "Your Name"}</h1>
         <ContactRow personal={personal} allowDark={allowDark} className="py-2" />
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} leftMeta />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} leftMeta diff={diff} />
       </div>
     );
   }
@@ -123,7 +129,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
           <h1 className="text-3xl font-bold uppercase tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
           <ContactRow personal={personal} allowDark={allowDark} className="mt-1" />
         </header>
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} compact />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} compact diff={diff} />
       </div>
     );
   }
@@ -135,7 +141,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
           <h1 className="text-2xl font-bold uppercase tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
           <ContactRow personal={personal} allowDark={allowDark} className="justify-center" />
         </header>
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} boxed />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} boxed diff={diff} />
       </div>
     );
   }
@@ -147,7 +153,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
           <h1 className="text-3xl font-bold uppercase tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
           <ContactRow personal={personal} allowDark={allowDark} className="mt-1" />
         </header>
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} timeline />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} timeline diff={diff} />
       </div>
     );
   }
@@ -160,7 +166,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
           <h1 className="text-4xl font-bold uppercase tracking-normal" style={{ color: data.textColors.name ?? accent }}>{personal.fullName || "Your Name"}</h1>
           <ContactRow personal={personal} allowDark={allowDark} className="mt-2" />
         </header>
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} />
+          <ResumeSections data={data} accent={accent} allowDark={allowDark} diff={diff} />
       </div>
     );
   }
@@ -173,7 +179,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
           <h1 className="text-3xl font-bold uppercase tracking-normal" style={nameStyle}>{personal.fullName || "Your Name"}</h1>
           <ContactRow personal={personal} allowDark={false} className="mt-3 text-white/80" />
         </header>
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} boxed />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} boxed diff={diff} />
       </div>
     );
   }
@@ -186,7 +192,7 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
           <ContactRow personal={personal} allowDark={false} className="mt-3 border-t border-white/25 pt-3 text-white/90" />
         </header>
         <div className="px-12 py-8">
-          <ResumeSections data={data} accent={accent} allowDark={allowDark} labelColumn />
+          <ResumeSections data={data} accent={accent} allowDark={allowDark} labelColumn diff={diff} />
         </div>
       </>
     );
@@ -213,13 +219,13 @@ function StandardResume({ data, accent, allowDark, fitContent = false }: { data:
         <ContactRow personal={personal} allowDark={allowDark} className={cn("mx-10 border-b border-slate-200 py-3", allowDark && "dark:border-slate-700")} />
       </header>
       <div className="px-10 pb-10">
-        <ResumeSections data={data} accent={accent} allowDark={allowDark} />
+        <ResumeSections data={data} accent={accent} allowDark={allowDark} diff={diff} />
       </div>
     </>
   );
 }
 
-function SidebarResume({ data, accent, allowDark, fitContent = false, inverted = false }: { data: ResumeData; accent: string; allowDark: boolean; fitContent?: boolean; inverted?: boolean }) {
+function SidebarResume({ data, accent, allowDark, diff, fitContent = false, inverted = false }: { data: ResumeData; accent: string; allowDark: boolean; diff?: ResumePreviewDiff; fitContent?: boolean; inverted?: boolean }) {
   const personal = data.personal;
   const nameStyle = colorStyle(data.textColors.name);
   const initialsStyle = getInitialsBoxStyle(data, "#020617");
@@ -244,13 +250,15 @@ function SidebarResume({ data, accent, allowDark, fitContent = false, inverted =
           <section className="mt-8">
             <h2 className="mb-3 text-xs font-bold uppercase">Skills</h2>
             <div className="space-y-1 text-[11px] leading-5">
-              {data.skills.map((skill) => <p key={skill}>{skill}</p>)}
+              {data.skills.map((skill) => (
+                <p className={diffHighlightClass(isChangedListItem(skill, diff?.otherData.skills), diff?.side)} key={skill}>{skill}</p>
+              ))}
             </div>
           </section>
         )}
       </aside>
       <main className={`px-10 py-9 ${inverted ? "-order-1" : ""}`}>
-        <ResumeSections data={{ ...data, skills: [] }} accent={accent} allowDark={allowDark} />
+        <ResumeSections data={{ ...data, skills: [] }} accent={accent} allowDark={allowDark} diff={diff ? { ...diff, otherData: { ...diff.otherData, skills: [] } } : undefined} />
       </main>
     </div>
   );
@@ -267,7 +275,8 @@ function ResumeSections({
   ,
   timeline = false,
   compact = false,
-  airy = false
+  airy = false,
+  diff
 }: {
   data: ResumeData;
   accent: string;
@@ -279,14 +288,22 @@ function ResumeSections({
   timeline?: boolean;
   compact?: boolean;
   airy?: boolean;
+  diff?: ResumePreviewDiff;
 }) {
+  const other = diff?.otherData;
   return (
     <>
-      {!isSectionHidden(data, "summary") && data.summary && <Section title="Summary" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}><p style={colorStyle(data.textColors.description)}>{data.summary}</p></Section>}
+      {!isSectionHidden(data, "summary") && data.summary && (
+        <Section title="Summary" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
+          <p style={colorStyle(data.textColors.description)}>
+            <InlineDiffText otherValue={other?.summary} side={diff?.side} value={data.summary} />
+          </p>
+        </Section>
+      )}
       {!isSectionHidden(data, "skills") && data.skills.length > 0 && (
         <Section title="Skills" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-            {data.skills.map((skill) => <p className="before:mr-2 before:content-['-']" key={skill} style={colorStyle(data.textColors.description)}>{skill}</p>)}
+            {data.skills.map((skill) => <p className={cn("before:mr-2 before:content-['-']", diffHighlightClass(isChangedListItem(skill, other?.skills), diff?.side))} key={skill} style={colorStyle(data.textColors.description)}>{skill}</p>)}
           </div>
         </Section>
       )}
@@ -297,6 +314,10 @@ function ResumeSections({
               body={item.description}
               allowDark={allowDark}
               descriptionColor={data.textColors.description}
+              diffSide={diff?.side}
+              diffBodyItems={parseResumeBody(other?.experience[index]?.description).items}
+              highlightMeta={isChangedText([item.company, formatRange(item.startDate, item.current ? "Present" : item.endDate)].filter(Boolean).join(" | "), other?.experience[index] ? [other.experience[index].company, formatRange(other.experience[index].startDate, other.experience[index].current ? "Present" : other.experience[index].endDate)].filter(Boolean).join(" | ") : undefined)}
+              highlightTitle={isChangedText(item.role, other?.experience[index]?.role)}
               key={`${item.company}-${index}`}
               leftMeta={leftMeta}
               meta={[item.company, formatRange(item.startDate, item.current ? "Present" : item.endDate)].filter(Boolean).join(" | ")}
@@ -309,22 +330,22 @@ function ResumeSections({
       )}
       {!isSectionHidden(data, "projects") && data.projects.length > 0 && (
         <Section title="Projects" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
-          {data.projects.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.name}-${index}`} title={item.name} meta={[item.technologies, item.github, item.live].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
+          {data.projects.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} diffBodyItems={parseResumeBody(other?.projects[index]?.description).items} diffSide={diff?.side} highlightMeta={isChangedText([item.technologies, item.github, item.live].filter(Boolean).join(" | "), other?.projects[index] ? [other.projects[index].technologies, other.projects[index].github, other.projects[index].live].filter(Boolean).join(" | ") : undefined)} highlightTitle={isChangedText(item.name, other?.projects[index]?.name)} key={`${item.name}-${index}`} title={item.name} meta={[item.technologies, item.github, item.live].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
         </Section>
       )}
       {!isSectionHidden(data, "education") && data.education.length > 0 && (
         <Section title="Education" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
-          {data.education.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.college}-${index}`} title={item.degree} meta={[item.college, formatRange(item.startDate, item.endDate), formatEducationScore(item)].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
+          {data.education.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} diffBodyItems={parseResumeBody(other?.education[index]?.description).items} diffSide={diff?.side} highlightMeta={isChangedText([item.college, formatRange(item.startDate, item.endDate), formatEducationScore(item)].filter(Boolean).join(" | "), other?.education[index] ? [other.education[index].college, formatRange(other.education[index].startDate, other.education[index].endDate), formatEducationScore(other.education[index])].filter(Boolean).join(" | ") : undefined)} highlightTitle={isChangedText(item.degree, other?.education[index]?.degree)} key={`${item.college}-${index}`} title={item.degree} meta={[item.college, formatRange(item.startDate, item.endDate), formatEducationScore(item)].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
         </Section>
       )}
       {!isSectionHidden(data, "certifications") && data.certifications.length > 0 && (
         <Section title="Certifications" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
-          {data.certifications.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${item.name}-${index}`} title={item.name} meta={[item.provider, formatMonth(item.date)].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
+          {data.certifications.map((item, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} diffBodyItems={parseResumeBody(other?.certifications[index]?.description).items} diffSide={diff?.side} highlightMeta={isChangedText([item.provider, formatMonth(item.date)].filter(Boolean).join(" | "), other?.certifications[index] ? [other.certifications[index].provider, formatMonth(other.certifications[index].date)].filter(Boolean).join(" | ") : undefined)} highlightTitle={isChangedText(item.name, other?.certifications[index]?.name)} key={`${item.name}-${index}`} title={item.name} meta={[item.provider, formatMonth(item.date)].filter(Boolean).join(" | ")} metaColor={data.textColors.meta} subtitleColor={data.textColors.subtitle} body={item.description} />)}
         </Section>
       )}
       {!isSectionHidden(data, "achievements") && data.achievements.length > 0 && (
         <Section title="Achievements" accent={accent} allowDark={allowDark} boxed={boxed} centered={centered} labelColumn={labelColumn} timeline={timeline} compact={compact} airy={airy}>
-          {data.achievements.map((achievement, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} key={`${achievement.title}-${index}`} title={achievement.title || "Achievement"} subtitleColor={data.textColors.subtitle} body={achievement.description} />)}
+          {data.achievements.map((achievement, index) => <Entry allowDark={allowDark} descriptionColor={data.textColors.description} diffBodyItems={parseResumeBody(other?.achievements[index]?.description).items} diffSide={diff?.side} highlightTitle={isChangedText(achievement.title, other?.achievements[index]?.title)} key={`${achievement.title}-${index}`} title={achievement.title || "Achievement"} subtitleColor={data.textColors.subtitle} body={achievement.description} />)}
         </Section>
       )}
     </>
@@ -353,19 +374,47 @@ function Section({ title, accent, allowDark, boxed, centered, labelColumn, timel
   );
 }
 
-function Entry({ title, meta, body, allowDark, descriptionColor, metaColor, subtitleColor, leftMeta = false }: { title: string; meta?: string; body?: string; allowDark: boolean; descriptionColor?: string; metaColor?: string; subtitleColor?: string; leftMeta?: boolean }) {
+function Entry({
+  title,
+  meta,
+  body,
+  allowDark,
+  descriptionColor,
+  diffBodyItems,
+  diffSide,
+  highlightMeta = false,
+  highlightTitle = false,
+  metaColor,
+  subtitleColor,
+  leftMeta = false
+}: {
+  title: string;
+  meta?: string;
+  body?: string;
+  allowDark: boolean;
+  descriptionColor?: string;
+  diffBodyItems?: string[];
+  diffSide?: ResumePreviewDiff["side"];
+  highlightMeta?: boolean;
+  highlightTitle?: boolean;
+  metaColor?: string;
+  subtitleColor?: string;
+  leftMeta?: boolean;
+}) {
   const bodyContent = parseResumeBody(body);
   const bodyStyle = colorStyle(descriptionColor);
   const metaStyle = colorStyle(metaColor);
   const titleStyle = colorStyle(subtitleColor);
+  const titleClassName = cn("min-w-0 break-words text-[13px] font-bold", diffHighlightClass(highlightTitle, diffSide));
+  const metaClassName = cn("text-[10px] font-semibold text-slate-700", allowDark && "dark:text-slate-300", diffHighlightClass(highlightMeta, diffSide));
 
   if (leftMeta) {
     return (
       <div className="resume-entry grid break-inside-avoid grid-cols-[130px_1fr] gap-5 [page-break-inside:avoid]">
-        {meta && <p className={cn("text-[10px] font-semibold text-slate-700", allowDark && "dark:text-slate-300")} style={metaStyle}>{meta}</p>}
+        {meta && <p className={metaClassName} style={metaStyle}>{meta}</p>}
         <div>
-          <h3 className="min-w-0 break-words text-[13px] font-bold" style={titleStyle}>{title}</h3>
-          <ResumeBody content={bodyContent} allowDark={allowDark} style={bodyStyle} />
+          <h3 className={titleClassName} style={titleStyle}>{title}</h3>
+          <ResumeBody content={bodyContent} allowDark={allowDark} diffSide={diffSide} otherItems={diffBodyItems} style={bodyStyle} />
         </div>
       </div>
     );
@@ -374,22 +423,36 @@ function Entry({ title, meta, body, allowDark, descriptionColor, metaColor, subt
   return (
     <div className="resume-entry break-inside-avoid [page-break-inside:avoid]">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3">
-        <h3 className="min-w-0 break-words text-[13px] font-bold uppercase" style={titleStyle}>{title}</h3>
-        {meta && <p className={cn("max-w-[340px] text-right text-[10px] text-slate-500", allowDark && "dark:text-slate-400")} style={metaStyle}>{meta}</p>}
+        <h3 className={cn(titleClassName, "uppercase")} style={titleStyle}>{title}</h3>
+        {meta && <p className={cn("max-w-[340px] text-right text-[10px] text-slate-500", allowDark && "dark:text-slate-400", diffHighlightClass(highlightMeta, diffSide))} style={metaStyle}>{meta}</p>}
       </div>
-      <ResumeBody content={bodyContent} allowDark={allowDark} style={bodyStyle} />
+      <ResumeBody content={bodyContent} allowDark={allowDark} diffSide={diffSide} otherItems={diffBodyItems} style={bodyStyle} />
     </div>
   );
 }
 
-function ResumeBody({ content, allowDark, style }: { content: ParsedResumeBody; allowDark: boolean; style?: CSSProperties }) {
+function ResumeBody({
+  content,
+  allowDark,
+  diffSide,
+  otherItems,
+  style
+}: {
+  content: ParsedResumeBody;
+  allowDark: boolean;
+  diffSide?: ResumePreviewDiff["side"];
+  otherItems?: string[];
+  style?: CSSProperties;
+}) {
   if (content.items.length === 0) return null;
 
   if (content.kind === "bullets") {
     return (
       <ul className={cn("mt-1 list-disc space-y-0.5 pl-4 text-slate-700", allowDark && "dark:text-slate-300")} style={style}>
         {content.items.map((item, index) => (
-          <li className="break-words" key={`${item}-${index}`}>{item}</li>
+          <li className="break-words" key={`${item}-${index}`}>
+            <InlineDiffText otherValue={otherItems?.[index]} side={diffSide} value={item} />
+          </li>
         ))}
       </ul>
     );
@@ -398,7 +461,9 @@ function ResumeBody({ content, allowDark, style }: { content: ParsedResumeBody; 
   return (
     <div className={cn("mt-1 space-y-1 text-slate-700", allowDark && "dark:text-slate-300")} style={style}>
       {content.items.map((item, index) => (
-        <p className="break-words" key={`${item}-${index}`}>{item}</p>
+        <p className="break-words" key={`${item}-${index}`}>
+          <InlineDiffText otherValue={otherItems?.[index]} side={diffSide} value={item} />
+        </p>
       ))}
     </div>
   );
@@ -449,6 +514,111 @@ function parseResumeBody(value?: string): ParsedResumeBody {
       .map((item) => item.replace(/\s+/g, " ").trim())
       .filter(Boolean)
   };
+}
+
+function InlineDiffText({
+  otherValue,
+  side,
+  value
+}: {
+  otherValue?: string;
+  side?: ResumePreviewDiff["side"];
+  value: string;
+}) {
+  if (!side) return <>{value}</>;
+  const chunks = inlineDiffChunks(value, otherValue ?? "");
+  const highlightClass = diffHighlightClass(true, side);
+
+  return (
+    <>
+      {chunks.map((chunk, index) => (
+        chunk.changed ? (
+          <span className={highlightClass} key={`${chunk.text}-${index}`}>{chunk.text}</span>
+        ) : (
+          <span key={`${chunk.text}-${index}`}>{chunk.text}</span>
+        )
+      ))}
+    </>
+  );
+}
+
+function inlineDiffChunks(value: string, otherValue: string) {
+  const tokens = tokenizeDiffText(value);
+  const otherTokens = tokenizeDiffText(otherValue);
+  if (tokens.length === 0) return [{ text: value, changed: false }];
+  if (otherTokens.length === 0) return [{ text: value, changed: Boolean(value.trim()) }];
+
+  const table = Array.from({ length: tokens.length + 1 }, () => Array(otherTokens.length + 1).fill(0) as number[]);
+  for (let i = tokens.length - 1; i >= 0; i -= 1) {
+    for (let j = otherTokens.length - 1; j >= 0; j -= 1) {
+      table[i][j] = normalizeDiffToken(tokens[i]) === normalizeDiffToken(otherTokens[j])
+        ? table[i + 1][j + 1] + 1
+        : Math.max(table[i + 1][j], table[i][j + 1]);
+    }
+  }
+
+  const chunks: Array<{ text: string; changed: boolean }> = [];
+  let i = 0;
+  let j = 0;
+  while (i < tokens.length && j < otherTokens.length) {
+    if (normalizeDiffToken(tokens[i]) === normalizeDiffToken(otherTokens[j])) {
+      chunks.push({ text: tokens[i], changed: false });
+      i += 1;
+      j += 1;
+    } else if (table[i + 1][j] >= table[i][j + 1]) {
+      chunks.push({ text: tokens[i], changed: true });
+      i += 1;
+    } else {
+      j += 1;
+    }
+  }
+  while (i < tokens.length) {
+    chunks.push({ text: tokens[i], changed: true });
+    i += 1;
+  }
+
+  return mergeDiffChunks(chunks);
+}
+
+function tokenizeDiffText(value: string) {
+  return value.match(/\S+\s*/g) ?? [];
+}
+
+function normalizeDiffToken(value: string) {
+  return value.trim().toLowerCase().replace(/^[^\w]+|[^\w]+$/g, "");
+}
+
+function mergeDiffChunks(chunks: Array<{ text: string; changed: boolean }>) {
+  return chunks.reduce<Array<{ text: string; changed: boolean }>>((merged, chunk) => {
+    const previous = merged[merged.length - 1];
+    if (previous && previous.changed === chunk.changed) {
+      previous.text += chunk.text;
+    } else {
+      merged.push({ ...chunk });
+    }
+    return merged;
+  }, []);
+}
+
+function normalizeDiffText(value?: string) {
+  return (value ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function isChangedText(value: string, otherValue?: string) {
+  return normalizeDiffText(value) !== normalizeDiffText(otherValue);
+}
+
+function isChangedListItem(value: string, otherValues?: string[]) {
+  const normalized = normalizeDiffText(value);
+  if (!normalized) return false;
+  return !(otherValues ?? []).some((item) => normalizeDiffText(item) === normalized);
+}
+
+function diffHighlightClass(changed: boolean, side?: ResumePreviewDiff["side"]) {
+  if (!changed || !side) return "";
+  return side === "before"
+    ? "rounded-sm bg-red-100 px-1 text-red-950 ring-1 ring-red-200 dark:bg-red-950/45 dark:text-red-100 dark:ring-red-900"
+    : "rounded-sm bg-emerald-100 px-1 text-emerald-950 ring-1 ring-emerald-200 dark:bg-emerald-950/45 dark:text-emerald-100 dark:ring-emerald-900";
 }
 
 function formatRange(start?: string, end?: string) {
