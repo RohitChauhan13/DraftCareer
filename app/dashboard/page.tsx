@@ -69,7 +69,7 @@ export default async function DashboardPage() {
         <div className="mb-6 grid gap-3 sm:grid-cols-3">
           <DashboardStat icon={FileText} label="Total resumes" value={String(dashboardResumes.length)} />
           <DashboardStat icon={Pin} label="Pinned" value={String(pinnedCount)} />
-          <DashboardStat icon={CalendarClock} label="Latest update" value={latestResume ? latestResume.updatedAt.toLocaleDateString() : "No activity"} />
+          <DashboardStat icon={CalendarClock} label="Latest update" value={latestResume ? formatDate(latestResume.updatedAt) : "No activity"} />
         </div>
 
         {dashboardResumes.length === 0 ? (
@@ -106,7 +106,7 @@ export default async function DashboardPage() {
                 <CardContent className="flex items-end justify-between gap-3">
                   <div>
                     <NavActionLink href={`/builder/${resume.id}`}>Edit resume</NavActionLink>
-                    <p className="mt-4 text-xs text-muted-foreground">Updated {resume.updatedAt.toLocaleDateString()}</p>
+                    <p className="mt-4 text-xs text-muted-foreground">Last Updated: {formatDate(resume.updatedAt)}</p>
                   </div>
                   <div className="hidden h-14 w-14 place-items-center rounded-md bg-primary/10 text-primary sm:grid">
                     <FileText size={24} />
@@ -135,4 +135,12 @@ function DashboardStat({ icon: Icon, label, value }: { icon: typeof FileText; la
       </div>
     </div>
   );
+}
+
+function formatDate(value: Date) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(value);
 }
