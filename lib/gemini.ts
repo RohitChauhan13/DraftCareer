@@ -64,7 +64,8 @@ function buildPrompt(resume: ResumeData, jobRequirement?: string) {
     jobRequirement ? "Tailor the resume toward the supplied job requirement while staying truthful to the candidate's existing data." : "Use broad ATS best practices because no target job requirement was supplied.",
     "Return only valid JSON matching the same object shape. Do not wrap it in markdown.",
     "Rules:",
-    "- Preserve title, templateId, themeId, themeColor, textColors, hiddenSections, initialsStyle, all personal contact fields, dates, links, company names, school names, and certification names.",
+    "- Preserve title, templateId, themeId, themeColor, textColors, hiddenSections, initialsStyle, dates, company names, school names, and certification names.",
+    "- Personal contact fields are intentionally omitted and restored by the system later. Do not modify, infer, or mention them.",
     "- Improve summary and descriptions using strong action verbs, measurable impact when already implied, and role-relevant keywords.",
     "- When a job requirement is supplied, prioritize matching relevant keywords, responsibilities, and tools from that requirement only when supported by the resume input.",
     "- Do not invent employers, degrees, dates, metrics, credentials, links, or tools that are not supported by the input.",
@@ -80,6 +81,15 @@ function buildPrompt(resume: ResumeData, jobRequirement?: string) {
 function stripLargeClientOnlyFields(resume: ResumeData): ResumeData {
   return {
     ...resume,
+    personal: {
+      fullName: "",
+      email: "",
+      phone: "",
+      location: "",
+      linkedin: "",
+      github: "",
+      portfolio: ""
+    },
     initialsStyle: {
       ...resume.initialsStyle,
       image: resume.initialsStyle.image ? "[image omitted]" : undefined,

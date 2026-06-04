@@ -21,6 +21,8 @@ import type { ResumeShareInfo } from "@/lib/resume-share";
 
 const skillSuggestions = ["React", "JavaScript", "React-Native", "Next.js", "TypeScript", "Node.js", "Basic HTML", "Angular", "PostgreSQL", "MySQL", "MongoDB", "Prisma", "Docker", "AWS", "Git"];
 const requiredPersonalFields = ["fullName", "email", "phone", "location"] as const;
+const resumeEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const resumePhonePattern = /^\d{10}$/;
 const draftKey = "resume-builder-draft";
 const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultColor: string }> = [
   { key: "name", label: "Name", defaultColor: "#111827" },
@@ -132,10 +134,32 @@ export function ResumeBuilder({
 
   function validatePersonalDetails() {
     const missing = getMissingPersonalFields();
-    if (missing.length === 0) return true;
+    if (missing.length > 0) {
+      toast.warning(`Missing: ${missing.map(formatPersonalField).join(", ")}`);
+      return false;
+    }
 
-    toast.warning(`Missing: ${missing.map(formatPersonalField).join(", ")}`);
+    const errors = getPersonalValidationErrors();
+    const messages = Object.values(errors);
+    if (messages.length === 0) return true;
+
+    toast.warning(messages.join(" "));
     return false;
+  }
+
+  function getPersonalValidationErrors() {
+    const errors: Partial<Record<"email" | "phone", string>> = {};
+    const email = data.personal.email.trim();
+    const phone = data.personal.phone.trim();
+
+    if (email && !resumeEmailPattern.test(email)) {
+      errors.email = "Enter a valid email address.";
+    }
+    if (phone && !resumePhonePattern.test(phone)) {
+      errors.phone = "Phone number must be exactly 10 digits.";
+    }
+
+    return errors;
   }
 
   async function save() {
@@ -904,21 +928,38 @@ async function downloadPdf() {
           )}
 
           <Panel title="Personal Information">
-            {getMissingPersonalFields().length > 0 && (
+            {(() => {
+              const missing = getMissingPersonalFields();
+              const errors = getPersonalValidationErrors();
+              const hasNotice = missing.length > 0 || errors.email || errors.phone;
+
+              return hasNotice ? (
               <p className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                Full name, email, phone, and location are required before saving or downloading.
+                {missing.length > 0
+                  ? "Full name, email, phone, and location are required before saving or downloading."
+                  : [errors.email, errors.phone].filter(Boolean).join(" ")}
               </p>
-            )}
+              ) : null;
+            })()}
             <Grid>
-              {(["fullName", "email", "phone", "location", "linkedin", "github", "portfolio"] as const).map((key) => (
-                <Input
-                  className={requiredPersonalFields.includes(key as typeof requiredPersonalFields[number]) && !data.personal[key].trim() ? "border-amber-300 bg-amber-50/60" : undefined}
-                  key={key}
-                  placeholder={key.replace(/([A-Z])/g, " $1")}
-                  value={data.personal[key]}
-                  onChange={(event) => setData({ ...data, personal: { ...data.personal, [key]: event.target.value } })}
-                />
-              ))}
+              {(["fullName", "email", "phone", "location", "linkedin", "github", "portfolio"] as const).map((key) => {
+                const errors = getPersonalValidationErrors();
+                const missing = requiredPersonalFields.includes(key as typeof requiredPersonalFields[number]) && !data.personal[key].trim();
+                const invalid = (key === "email" && errors.email) || (key === "phone" && errors.phone);
+
+                return (
+                  <Input
+                    className={missing || invalid ? "border-amber-300 bg-amber-50/60" : undefined}
+                    inputMode={key === "phone" ? "numeric" : undefined}
+                    key={key}
+                    maxLength={key === "phone" ? 10 : undefined}
+                    placeholder={key.replace(/([A-Z])/g, " $1")}
+                    type={key === "email" ? "email" : key === "phone" ? "tel" : "text"}
+                    value={data.personal[key]}
+                    onChange={(event) => setData({ ...data, personal: { ...data.personal, [key]: key === "phone" ? event.target.value.replace(/\D/g, "").slice(0, 10) : event.target.value } })}
+                  />
+                );
+              })}
             </Grid>
           </Panel>
 
@@ -1561,14 +1602,14 @@ function EnhanceConfirmContent({
           <div className="mt-3 space-y-2">
             <Textarea
               className="min-h-28"
-              maxLength={8000}
+              maxLength={2000}
               placeholder="Paste job responsibilities, required skills, role description, or recruiter requirements here..."
               value={jobRequirement}
               onChange={(event) => onJobRequirementChange(event.target.value)}
             />
             <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
               <span>AI will tailor only where your resume already supports it.</span>
-              <span>{jobRequirement.length}/8000</span>
+              <span>{jobRequirement.length}/2000</span>
             </div>
           </div>
         )}
