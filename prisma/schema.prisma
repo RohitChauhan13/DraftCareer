@@ -23,6 +23,7 @@ model User {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
   resumes       Resume[]
+  feedback      Feedback[]
 
   @@map("users")
 }
@@ -101,4 +102,19 @@ model AiEnhanceSettings {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("ai_enhance_settings")
+}
+
+model Feedback {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  rating       Int
+  category     String
+  message      String
+  allowContact Boolean  @default(true) @map("allow_contact")
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("feedback")
 }

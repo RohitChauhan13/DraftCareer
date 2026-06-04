@@ -154,6 +154,13 @@ export const userAiEnhanceSchema = z.object({
   message: "Send an enhancement block state or resetCount."
 });
 
+export const feedbackSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  category: z.enum(["experience", "templates", "ai", "export", "bug", "idea", "other"]),
+  message: z.string().trim().min(10, "Feedback must be at least 10 characters.").max(1600, "Feedback must be 1600 characters or less."),
+  allowContact: z.boolean().default(true)
+});
+
 export const donationSettingsSchema = z.object({
   isPageVisible: z.boolean().optional(),
   upiId: z

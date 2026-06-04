@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Info, Mail, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -18,7 +18,7 @@ type View = Mode | "forgot";
 type Errors = Partial<Record<"name" | "email" | "password" | "otp", string>>;
 const RESEND_SECONDS = 60;
 
-export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonation?: boolean }) {
+export function AuthForm({ loginReason, mode, showDonation = true }: { loginReason?: string; mode: Mode; showDonation?: boolean }) {
   const router = useRouter();
   const [view, setView] = useState<View>(mode);
   const [loading, setLoading] = useState(false);
@@ -253,6 +253,12 @@ export function AuthForm({ mode, showDonation = true }: { mode: Mode; showDonati
           </div>
         </CardHeader>
         <CardContent>
+          {loginReason && view === "login" && !needsOtp && (
+            <div className="mb-4 flex items-start gap-3 rounded-md border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">
+              <Info className="mt-0.5 shrink-0" size={16} />
+              <p className="font-medium leading-5">{loginReason}</p>
+            </div>
+          )}
           {needsOtp ? (
             <OtpStep
               errors={errors}

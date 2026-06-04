@@ -21,7 +21,7 @@ export const metadata = {
 
 export default async function NewResumePage({ searchParams }: { searchParams: Promise<{ templateId?: string; themeId?: string; themeColor?: string }> }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/login?reason=templates");
   const [donationSettings, templateTagSettings, aiEnhanceUsage] = await Promise.all([
     getDonationSettings(),
     getTemplateTagSettings(),

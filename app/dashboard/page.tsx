@@ -18,7 +18,7 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/login?reason=dashboard");
   const donationSettings = await getDonationSettings();
 
   const resumes = await prisma.resume.findMany({

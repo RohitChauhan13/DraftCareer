@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { Activity, Eye, FileText, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
+import Link from "next/link";
+import { Activity, BadgeIndianRupee, Eye, FileText, MessageSquareHeart, ShieldCheck, Sparkles, Tags, UserRound, UsersRound } from "lucide-react";
 import { AiEnhanceSettingsForm } from "@/components/ai-enhance-settings-form";
 import { MainNav } from "@/components/main-nav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -105,11 +106,18 @@ export default async function StatsPage() {
       <MainNav user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />
 
       <section className="mx-auto w-full max-w-7xl min-w-0 px-4 py-8 sm:px-6">
-        <div className="mb-6">
-          <h1 className="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Stats</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            User and resume activity overview for DraftCareer.
-          </p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Stats</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              User and resume activity overview for DraftCareer.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <StatsToolLink href="/stats/feedback" icon={MessageSquareHeart} label="Feedback" />
+            <StatsToolLink href="/stats/donation" icon={BadgeIndianRupee} label="Donation" />
+            <StatsToolLink href="/stats/template-config" icon={Tags} label="Templates" />
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
@@ -138,6 +146,14 @@ function MetricCard({ icon: Icon, label, value }: { icon: typeof UserRound; labe
         <p className="mt-1 text-2xl font-black">{value}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function StatsToolLink({ href, icon: Icon, label }: { href: string; icon: typeof UserRound; label: string }) {
+  return (
+    <Link className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-bold transition hover:bg-muted/60" href={href}>
+      <Icon size={16} /> {label}
+    </Link>
   );
 }
 
