@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, CalendarClock, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, RotateCcw, Save, Sparkles, X } from "lucide-react";
+import { ArrowLeft, CalendarClock, Check, ChevronDown, Copy, Download, Eye, EyeOff, GripVertical, LayoutTemplate, Minus, Plus, Redo2, RotateCcw, Save, Sparkles, Target, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 import { ResumePreview } from "@/templates/resume-preview";
 import type { ResumeData, ResumeSectionKey, ResumeTextColorKey, TemplateId } from "@/types/resume";
@@ -38,7 +38,12 @@ const enhancementStages = [
   "Received AI enhanced data",
   "Replacing current data"
 ];
-const minimumEnhancementStageMs = 2000;
+const minimumEnhancementStageMs = 1000;
+type AiEnhanceHistory = {
+  before: ResumeData;
+  after: ResumeData;
+  state: "applied" | "undone";
+} | null;
 
 export function ResumeBuilder({
   initialData,
@@ -66,6 +71,9 @@ export function ResumeBuilder({
   const [confirmEnhance, setConfirmEnhance] = useState(false);
   const [enhancementError, setEnhancementError] = useState<string | null>(null);
   const [dailyLimitOpen, setDailyLimitOpen] = useState(false);
+  const [targetJobEnabled, setTargetJobEnabled] = useState(false);
+  const [targetJobRequirement, setTargetJobRequirement] = useState("");
+  const [aiEnhanceHistory, setAiEnhanceHistory] = useState<AiEnhanceHistory>(null);
   const [aiEnhanceUsage, setAiEnhanceUsage] = useState<AiEnhanceUsage | undefined>(initialAiEnhanceUsage);
   const [exporting, setExporting] = useState(false);
   const [confirmDownload, setConfirmDownload] = useState(false);
@@ -280,7 +288,10 @@ async function downloadPdf() {
       const response = await fetch("/api/resumes/enhance", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ resume: data })
+        body: JSON.stringify({
+          resume: data,
+          jobRequirement: targetJobEnabled ? targetJobRequirement.trim() || undefined : undefined
+        })
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error);
@@ -288,6 +299,7 @@ async function downloadPdf() {
       await waitForStage();
       setEnhancementStage(3);
       await waitForStage();
+      setAiEnhanceHistory({ before: data, after: result.resume, state: "applied" });
       setData(result.resume);
       if (result.usage) setAiEnhanceUsage(result.usage);
       toast.success(typeof result.usage?.remaining === "number" ? `Enhanced for ATS. ${result.usage.remaining} chances left today.` : "Enhanced for ATS");
@@ -315,6 +327,20 @@ async function downloadPdf() {
     setCropZoom(1);
     setCropX(0);
     setCropY(0);
+  }
+
+  function undoAiEnhancement() {
+    if (!aiEnhanceHistory || aiEnhanceHistory.state === "undone") return;
+    setData(aiEnhanceHistory.before);
+    setAiEnhanceHistory({ ...aiEnhanceHistory, state: "undone" });
+    toast.success("AI enhancement undone");
+  }
+
+  function redoAiEnhancement() {
+    if (!aiEnhanceHistory || aiEnhanceHistory.state === "applied") return;
+    setData(aiEnhanceHistory.after);
+    setAiEnhanceHistory({ ...aiEnhanceHistory, state: "applied" });
+    toast.success("AI enhancement restored");
   }
 
   async function applyInitialsCrop() {
@@ -418,6 +444,30 @@ async function downloadPdf() {
             <Button variant="secondary" onClick={requestAiEnhancement} loading={enhancing} loadingText="Enhancing" disabled={saving || exporting}>
               <Sparkles size={16} /> Enhance with AI
             </Button>
+            {aiEnhanceHistory && (
+              <div className="flex items-center gap-1 rounded-md border border-border bg-surface p-1">
+                <Button
+                  disabled={saving || exporting || enhancing || aiEnhanceHistory.state === "undone"}
+                  size="icon"
+                  title="Undo AI enhancement"
+                  type="button"
+                  variant="ghost"
+                  onClick={undoAiEnhancement}
+                >
+                  <Undo2 size={16} />
+                </Button>
+                <Button
+                  disabled={saving || exporting || enhancing || aiEnhanceHistory.state === "applied"}
+                  size="icon"
+                  title="Redo AI enhancement"
+                  type="button"
+                  variant="ghost"
+                  onClick={redoAiEnhancement}
+                >
+                  <Redo2 size={16} />
+                </Button>
+              </div>
+            )}
             <Button variant="secondary" onClick={save} loading={saving} loadingText="Saving"><Save size={16} /> Save</Button>
             {resumeId && (
               <>
@@ -499,9 +549,16 @@ async function downloadPdf() {
       <ConfirmDialog
         cancelLabel="Cancel"
         confirmLabel={<><Sparkles size={16} /> Enhance with AI</>}
-        description={getEnhanceConfirmDescription(aiEnhanceUsage)}
+        description={getEnhanceConfirmDescription({
+          enabled: targetJobEnabled,
+          jobRequirement: targetJobRequirement,
+          onEnabledChange: setTargetJobEnabled,
+          onJobRequirementChange: setTargetJobRequirement,
+          usage: aiEnhanceUsage
+        })}
         loading={enhancing}
         open={confirmEnhance && !enhancing}
+        size="lg"
         title="Enhance resume with AI?"
         onCancel={() => {
           if (!enhancing) setConfirmEnhance(false);
@@ -1067,11 +1124,6 @@ function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
           className="absolute right-6 top-5 h-24 w-24 rounded-full bg-primary/20 blur-2xl"
           transition={{ duration: 2.4, repeat: Infinity }}
         />
-        <motion.div
-          animate={{ x: ["-120%", "120%"] }}
-          className="absolute left-0 top-0 h-1 w-full bg-primary/70"
-          transition={{ duration: 1.7, ease: "easeInOut", repeat: Infinity }}
-        />
         <div className="relative flex items-center gap-3">
           <div className="relative grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
             <motion.span
@@ -1128,12 +1180,8 @@ function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
                   {stage}
                 </p>
                 {active && (
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <motion.div
-                      animate={{ x: ["-35%", "135%"] }}
-                      className="h-full w-1/2 rounded-full bg-primary"
-                      transition={{ duration: 1.2, ease: "easeInOut", repeat: Infinity }}
-                    />
+                  <div className="mt-2 max-w-48">
+                    <SeamlessProgress />
                   </div>
                 )}
               </div>
@@ -1143,8 +1191,9 @@ function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
         </div>
 
         <div className="relative hidden overflow-hidden rounded-md border border-border bg-muted/30 p-3 md:block">
-          <p className="text-xs font-black uppercase text-muted-foreground">Resume scan</p>
-          <div className="mt-3 space-y-2">
+          <SeamlessScan />
+          <p className="relative text-xs font-black uppercase text-muted-foreground">Resume scan</p>
+          <div className="relative mt-3 space-y-2">
             {[72, 88, 54, 96, 66].map((width, index) => (
               <div className="h-2 overflow-hidden rounded-full bg-surface" key={width}>
                 <motion.div
@@ -1157,13 +1206,48 @@ function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
             ))}
           </div>
           <motion.div
-            animate={{ y: ["-20%", "125%"] }}
-            className="absolute left-0 right-0 top-0 h-10 bg-gradient-to-b from-transparent via-primary/20 to-transparent"
-            transition={{ duration: 1.6, ease: "easeInOut", repeat: Infinity }}
+            animate={{ rotate: 360 }}
+            className="absolute -right-10 -top-10 h-28 w-28 rounded-full border border-primary/10 border-r-primary/30"
+            transition={{ duration: 3.2, ease: "linear", repeat: Infinity }}
+          />
+          <motion.div
+            animate={{ rotate: -360 }}
+            className="absolute -bottom-14 -left-12 h-32 w-32 rounded-full border border-primary/10 border-l-primary/25"
+            transition={{ duration: 4.5, ease: "linear", repeat: Infinity }}
           />
         </div>
       </div>
     </div>
+  );
+}
+
+function SeamlessProgress({ duration = 1.2, heightClass = "h-1.5" }: { duration?: number; heightClass?: string }) {
+  return (
+    <div className={`relative overflow-hidden rounded-full bg-muted ${heightClass}`}>
+      <motion.div
+        animate={{ x: ["-50%", "0%"] }}
+        className="absolute inset-y-0 left-0 w-[200%]"
+        style={{
+          background:
+            "repeating-linear-gradient(90deg, transparent 0%, transparent 10%, hsl(var(--primary) / 0.9) 10%, hsl(var(--primary) / 0.9) 24%, transparent 24%, transparent 50%)"
+        }}
+        transition={{ duration, ease: "linear", repeat: Infinity }}
+      />
+    </div>
+  );
+}
+
+function SeamlessScan() {
+  return (
+    <motion.div
+      animate={{ y: ["-50%", "0%"] }}
+      className="pointer-events-none absolute left-0 top-0 h-[200%] w-full"
+      style={{
+        background:
+          "repeating-linear-gradient(180deg, transparent 0%, transparent 15%, hsl(var(--primary) / 0.18) 22%, hsl(var(--primary) / 0.08) 32%, transparent 39%, transparent 50%)"
+      }}
+      transition={{ duration: 2.2, ease: "linear", repeat: Infinity }}
+    />
   );
 }
 
@@ -1391,10 +1475,26 @@ function formatPersonalField(field: typeof requiredPersonalFields[number]) {
   return field.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
 }
 
-function getEnhanceConfirmDescription(usage?: AiEnhanceUsage) {
+function getEnhanceConfirmDescription({
+  enabled,
+  jobRequirement,
+  onEnabledChange,
+  onJobRequirementChange,
+  usage
+}: {
+  enabled: boolean;
+  jobRequirement: string;
+  onEnabledChange: (value: boolean) => void;
+  onJobRequirementChange: (value: string) => void;
+  usage?: AiEnhanceUsage;
+}) {
   if (!usage) {
     return (
       <EnhanceConfirmContent
+        enabled={enabled}
+        jobRequirement={jobRequirement}
+        onEnabledChange={onEnabledChange}
+        onJobRequirementChange={onJobRequirementChange}
         remainingLabel="AI enhancement available"
       />
     );
@@ -1402,22 +1502,77 @@ function getEnhanceConfirmDescription(usage?: AiEnhanceUsage) {
 
   return (
     <EnhanceConfirmContent
+      enabled={enabled}
+      jobRequirement={jobRequirement}
+      onEnabledChange={onEnabledChange}
+      onJobRequirementChange={onJobRequirementChange}
       remainingLabel={usage.remaining === null ? "AI enhancement: Unlimited" : `AI enhancements left today: ${usage.remaining}`}
       usesChance={usage.remaining !== null}
     />
   );
 }
 
-function EnhanceConfirmContent({ remainingLabel, usesChance = false }: { remainingLabel: string; usesChance?: boolean }) {
+function EnhanceConfirmContent({
+  enabled,
+  jobRequirement,
+  onEnabledChange,
+  onJobRequirementChange,
+  remainingLabel,
+  usesChance = false
+}: {
+  enabled: boolean;
+  jobRequirement: string;
+  onEnabledChange: (value: boolean) => void;
+  onJobRequirementChange: (value: string) => void;
+  remainingLabel: string;
+  usesChance?: boolean;
+}) {
   return (
-    <div className="space-y-3">
-      <p className="font-semibold text-foreground">{remainingLabel}</p>
+    <div className="space-y-4">
+      <div>
+        <p className="font-semibold text-foreground">{remainingLabel}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {usesChance ? "This will use 1 chance and replace your editable resume content." : "This will replace your editable resume content."}
+        </p>
+      </div>
       <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
         Fill all sections first for the best result.
       </div>
-      <p>
-        {usesChance ? "Enhancing will use 1 of today's chances and replace your current editable resume content." : "Enhancing will replace your current editable resume content."}
-      </p>
+      <div className="rounded-lg border border-border bg-muted/30 p-3">
+        <button
+          className="flex w-full items-center justify-between gap-3 text-left"
+          type="button"
+          onClick={() => onEnabledChange(!enabled)}
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-md ${enabled ? "bg-primary text-primary-foreground" : "bg-surface text-primary"}`}>
+              <Target size={17} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold text-foreground">Target a job post</span>
+              <span className="block text-xs text-muted-foreground">Optional: paste Naukri/LinkedIn JD for sharper ATS keywords.</span>
+            </span>
+          </span>
+          <span className={`relative h-6 w-11 shrink-0 rounded-full transition ${enabled ? "bg-primary" : "bg-slate-300 dark:bg-slate-700"}`}>
+            <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${enabled ? "left-6" : "left-1"}`} />
+          </span>
+        </button>
+        {enabled && (
+          <div className="mt-3 space-y-2">
+            <Textarea
+              className="min-h-28"
+              maxLength={8000}
+              placeholder="Paste job responsibilities, required skills, role description, or recruiter requirements here..."
+              value={jobRequirement}
+              onChange={(event) => onJobRequirementChange(event.target.value)}
+            />
+            <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+              <span>AI will tailor only where your resume already supports it.</span>
+              <span>{jobRequirement.length}/8000</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -101,10 +101,10 @@ export default async function StatsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen w-full overflow-x-hidden bg-background text-foreground">
       <MainNav user={{ name: user.name, email: user.email, role: user.role }} showDonation={donationSettings.isPageVisible} />
 
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <section className="mx-auto w-full max-w-7xl min-w-0 px-4 py-8 sm:px-6">
         <div className="mb-6">
           <h1 className="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Stats</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">

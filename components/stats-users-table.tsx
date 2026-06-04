@@ -113,15 +113,55 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
 
   const confirmAiState = confirmEnhanceAction ? getAiState(confirmEnhanceAction.user, enhanceState) : null;
 
+  function renderActions(row: StatsUserRow, compact = false) {
+    const aiState = getAiState(row, enhanceState);
+    const buttonSizeClass = compact ? "h-8 w-8" : undefined;
+
+    return (
+      <div className={`flex items-center ${compact ? "justify-end gap-1" : "gap-2"}`}>
+        <Button
+          className={buttonSizeClass}
+          loading={enhanceAction === `${row.id}-reset`}
+          size="icon"
+          title="Reset AI enhance count"
+          type="button"
+          variant="secondary"
+          onClick={() => setConfirmEnhanceAction({ user: row, action: "reset" })}
+        >
+          <RotateCcw size={15} />
+        </Button>
+        <Button
+          className={`${aiState.blocked ? "border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700" : "border-amber-500 bg-amber-500 text-white hover:bg-amber-600"} ${buttonSizeClass ?? ""}`.trim()}
+          loading={enhanceAction === `${row.id}-block`}
+          size="icon"
+          title={aiState.blocked ? "Unblock AI enhance" : "Block AI enhance"}
+          type="button"
+          variant="secondary"
+          onClick={() => setConfirmEnhanceAction({ user: row, action: "block" })}
+        >
+          {aiState.blocked ? <ShieldCheck size={15} /> : <ZapOff size={15} />}
+        </Button>
+        <UserBlockButton
+          className={buttonSizeClass}
+          disabled={row.id === currentUserId}
+          initialBlocked={row.isBlocked}
+          iconOnly
+          userId={row.id}
+          userName={row.name}
+        />
+      </div>
+    );
+  }
+
   return (
-    <Card className="mt-6 overflow-hidden">
+    <Card className="mt-6 w-full max-w-full min-w-0 overflow-hidden">
       <CardHeader>
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold">Users</h2>
           <p className="text-sm text-muted-foreground">Active means seen in the last 5 minutes. Last app use is shown in India time.</p>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="min-w-0 p-0">
         <div className="border-t border-border p-4">
           <div className="grid gap-3 md:grid-cols-[minmax(260px,1fr)_220px]">
             <label className="space-y-1">
@@ -158,10 +198,55 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1240px] border-collapse text-left text-sm">
+        <div className="divide-y divide-border md:hidden">
+          {filteredRows.map((row) => {
+            const aiState = getAiState(row, enhanceState);
+
+            return (
+              <div className="bg-surface p-4" key={row.id}>
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black">{row.name}</p>
+                    <p className="mt-0.5 flex min-w-0 items-center gap-1 truncate text-xs text-muted-foreground">
+                      <Mail size={12} /> <span className="truncate">{row.email}</span>
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <Badge tone={row.emailVerified ? "success" : "muted"}>{row.emailVerified ? "Verified" : "Unverified"}</Badge>
+                      {row.isBlocked && <Badge tone="danger">User blocked</Badge>}
+                      {aiState.blocked && <Badge tone="danger">AI blocked</Badge>}
+                    </div>
+                  </div>
+                  {renderActions(row, true)}
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <MobileMetric label="Resumes" value={row.resumeCount} />
+                  <MobileMetric label="Public" value={row.publicResumeCount} />
+                  <MobileMetric label="Private" value={row.privateResumeCount} />
+                  <MobileMetric label="AI today" value={aiState.dailyCount} icon={<Sparkles size={12} />} />
+                  <MobileMetric label="AI total" value={row.aiEnhanceCount} />
+                  <MobileMetric label="Created" value={formatShortDate(row.createdAt)} />
+                </div>
+
+                <div className="mt-3 rounded-md border border-border bg-muted/35 px-3 py-2 text-xs text-muted-foreground">
+                  Last app use <span className="font-bold text-foreground">{formatDate(row.lastAppUseAt)}</span>
+                </div>
+              </div>
+            );
+          })}
+          {filteredRows.length === 0 && (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              No users match these filters.
+            </div>
+          )}
+        </div>
+
+        <div className="hidden w-full max-w-full min-w-0 overflow-hidden md:block">
+          <div className="w-full overflow-x-auto">
+          <table className="w-full min-w-[1120px] border-collapse text-left text-sm lg:min-w-[1240px]">
             <thead className="border-y border-border bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="px-4 py-3 font-bold">Action</th>
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="User" sortKey="name" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Resumes" sortKey="resumeCount" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Public" sortKey="publicResumeCount" onSort={updateSort} />
@@ -171,12 +256,14 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Created" sortKey="createdAt" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Last use" sortKey="lastAppUseAt" onSort={updateSort} />
                 <SortableHead activeKey={sortKey} direction={sortDirection} label="Status" sortKey="status" onSort={updateSort} />
-                <th className="px-4 py-3 font-bold">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredRows.map((row) => (
                 <tr className="bg-surface transition hover:bg-muted/35" key={row.id}>
+                  <td className="px-4 py-3">
+                    {renderActions(row)}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{row.name}</p>
@@ -204,38 +291,6 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
                       <Badge tone={row.emailVerified ? "success" : "muted"}>{row.emailVerified ? "Verified" : "Unverified"}</Badge>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        loading={enhanceAction === `${row.id}-reset`}
-                        size="icon"
-                        title="Reset AI enhance count"
-                        type="button"
-                        variant="secondary"
-                        onClick={() => setConfirmEnhanceAction({ user: row, action: "reset" })}
-                      >
-                        <RotateCcw size={15} />
-                      </Button>
-                      <Button
-                        className={getAiState(row, enhanceState).blocked ? "border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700" : "border-amber-500 bg-amber-500 text-white hover:bg-amber-600"}
-                        loading={enhanceAction === `${row.id}-block`}
-                        size="icon"
-                        title={getAiState(row, enhanceState).blocked ? "Unblock AI enhance" : "Block AI enhance"}
-                        type="button"
-                        variant="secondary"
-                        onClick={() => setConfirmEnhanceAction({ user: row, action: "block" })}
-                      >
-                        {getAiState(row, enhanceState).blocked ? <ShieldCheck size={15} /> : <ZapOff size={15} />}
-                      </Button>
-                      <UserBlockButton
-                        disabled={row.id === currentUserId}
-                        initialBlocked={row.isBlocked}
-                        iconOnly
-                        userId={row.id}
-                        userName={row.name}
-                      />
-                    </div>
-                  </td>
                 </tr>
               ))}
               {filteredRows.length === 0 && (
@@ -247,6 +302,7 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </CardContent>
       <ConfirmDialog
@@ -282,12 +338,14 @@ export function StatsUsersTable({ currentUserId, rows }: { currentUserId: string
 
 function SortableHead({
   activeKey,
+  className = "",
   direction,
   label,
   onSort,
   sortKey
 }: {
   activeKey: SortKey;
+  className?: string;
   direction: SortDirection;
   label: string;
   onSort: (key: SortKey) => void;
@@ -297,7 +355,7 @@ function SortableHead({
   const Icon = active ? (direction === "asc" ? ArrowUp : ArrowDown) : ChevronsUpDown;
 
   return (
-    <th className="px-4 py-3 font-bold">
+    <th className={`px-4 py-3 font-bold ${className}`}>
       <button
         className={`inline-flex items-center gap-1.5 whitespace-nowrap transition hover:text-foreground ${active ? "text-foreground" : ""}`}
         type="button"
@@ -307,6 +365,18 @@ function SortableHead({
         <Icon size={14} />
       </button>
     </th>
+  );
+}
+
+function MobileMetric({ icon, label, value }: { icon?: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div className="min-w-0 rounded-md border border-border bg-muted/30 px-2.5 py-2">
+      <p className="truncate text-[10px] font-bold uppercase text-muted-foreground">{label}</p>
+      <p className="mt-1 flex items-center gap-1 truncate text-sm font-black text-foreground">
+        {icon && <span className="text-primary">{icon}</span>}
+        {value}
+      </p>
+    </div>
   );
 }
 
@@ -324,6 +394,14 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Asia/Kolkata"
+  }).format(new Date(value));
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
     timeZone: "Asia/Kolkata"
   }).format(new Date(value));
 }

@@ -12,6 +12,7 @@ type ConfirmDialogProps = {
   confirmLabel?: React.ReactNode;
   cancelLabel?: React.ReactNode | null;
   loading?: boolean;
+  size?: "md" | "lg";
   variant?: "danger" | "primary";
   onConfirm: () => void;
   onCancel: () => void;
@@ -24,6 +25,7 @@ export function ConfirmDialog({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   loading = false,
+  size = "md",
   variant = "primary",
   onConfirm,
   onCancel
@@ -38,7 +40,7 @@ export function ConfirmDialog({
 
   const dialog = (
     <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-      <div className="w-full max-w-md rounded-lg border border-border bg-surface text-surface-foreground shadow-soft">
+      <div className={`w-full rounded-lg border border-border bg-surface text-surface-foreground shadow-soft ${size === "lg" ? "max-w-xl" : "max-w-md"}`}>
         <div className="border-b border-border p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-4">

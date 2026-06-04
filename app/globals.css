@@ -37,11 +37,15 @@
 }
 
 html {
+  max-width: 100%;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
 body {
+  max-width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
   color: hsl(var(--foreground));
   background: hsl(var(--background));
   font-family:

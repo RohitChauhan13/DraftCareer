@@ -14,7 +14,7 @@ type GeminiResponse = {
 
 const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
-export async function enhanceResumeWithGemini(resume: ResumeData): Promise<ResumeData> {
+export async function enhanceResumeWithGemini(resume: ResumeData, jobRequirement?: string): Promise<ResumeData> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured.");
@@ -30,7 +30,7 @@ export async function enhanceResumeWithGemini(resume: ResumeData): Promise<Resum
       contents: [
         {
           role: "user",
-          parts: [{ text: buildPrompt(resume) }]
+          parts: [{ text: buildPrompt(resume, jobRequirement) }]
         }
       ],
       generationConfig: {
@@ -57,21 +57,24 @@ export async function enhanceResumeWithGemini(resume: ResumeData): Promise<Resum
   return restoreProtectedFields(resume, parsed);
 }
 
-function buildPrompt(resume: ResumeData) {
+function buildPrompt(resume: ResumeData, jobRequirement?: string) {
   return [
     "You are an expert ATS resume editor.",
     "Rewrite the supplied resume data to be ATS-friendly, concise, truthful, and impact-focused.",
+    jobRequirement ? "Tailor the resume toward the supplied job requirement while staying truthful to the candidate's existing data." : "Use broad ATS best practices because no target job requirement was supplied.",
     "Return only valid JSON matching the same object shape. Do not wrap it in markdown.",
     "Rules:",
     "- Preserve title, templateId, themeId, themeColor, textColors, hiddenSections, initialsStyle, all personal contact fields, dates, links, company names, school names, and certification names.",
     "- Improve summary and descriptions using strong action verbs, measurable impact when already implied, and role-relevant keywords.",
+    "- When a job requirement is supplied, prioritize matching relevant keywords, responsibilities, and tools from that requirement only when supported by the resume input.",
     "- Do not invent employers, degrees, dates, metrics, credentials, links, or tools that are not supported by the input.",
     "- Keep summary under 600 characters.",
     "- Keep descriptions readable in resume format; prefer 1-3 tight bullet-style sentences per item.",
     "- Deduplicate and normalize skills. You may add skills only when clearly evidenced by projects or experience.",
+    jobRequirement ? ["", "Target job requirement:", jobRequirement].join("\n") : "",
     "",
     JSON.stringify(stripLargeClientOnlyFields(resume))
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
 function stripLargeClientOnlyFields(resume: ResumeData): ResumeData {

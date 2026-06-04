@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     if (!access.allowed) return errorResponse(new Error(access.reason), 403);
 
     const payload = resumeEnhanceSchema.parse(await request.json());
-    const resume = await enhanceResumeWithGemini(payload.resume);
+    const resume = await enhanceResumeWithGemini(payload.resume, payload.jobRequirement);
     const usage = await recordEnhancement(userId);
 
     return ok({ resume, usage });
