@@ -1,46 +1,50 @@
 # DraftCareer
 
-DraftCareer is a full-stack resume builder for creating, saving, customizing, and exporting professional resumes. It gives users a focused workspace for building ATS-friendly resumes, choosing templates, managing saved resume history, and downloading polished PDFs.
+DraftCareer is a full-stack resume builder built with Next.js and TypeScript. It helps users create, save, preview, customize, and export ATS-friendly resumes from structured sections like experience, projects, skills, education, certifications, and achievements.
 
 ## Why DraftCareer
 
-Many resume tools feel either too rigid or too generic. DraftCareer is designed to make the resume-building flow fast, clear, and credible: users can sign up, verify their account, build a resume section by section, preview it live, switch templates, save progress, and export a final PDF when ready.
+DraftCareer strikes a balance between guided structure and visual flexibility. Users sign up, verify with OTP, manage resumes in a dashboard, pick templates, and export PDF-ready resumes without leaving the browser.
 
 ## Features
 
-- User signup, login, logout, password reset, and email OTP verification
+- Email-based signup, login, logout, password reset, and OTP verification
 - Secure password hashing with `bcryptjs`
-- JWT-based session handling with HTTP-only cookies
-- Dashboard for saved resumes
-- Create, edit, duplicate, and delete resumes
-- Structured resume sections for personal details, skills, experience, projects, education, certifications, and achievements
-- Template and theme selection
-- Live resume preview
+- JWT session cookies and custom auth logic
+- Resume dashboard with create, edit, duplicate, and delete actions
+- Structured resume sections for personal details, work history, projects, education, certifications, and achievements
+- Template and theme selection with live preview
+- Public resume sharing via secure slugs
+- Donation page visibility and admin-controlled donation settings
+- Feedback collection and admin review pages
+- AI enhancement controls and usage tracking
+- Custom template tag management
 - PDF export using `html2pdf.js`
-- PostgreSQL persistence through Prisma
+- PostgreSQL persistence with Prisma
 - Validation with Zod
-- Responsive UI built with Tailwind CSS
+- Responsive UI with Tailwind CSS
 
 ## Tech Stack
 
 - **Framework:** Next.js 15 with App Router
-- **UI:** React 19, Tailwind CSS, Lucide React, Framer Motion
+- **UI:** React 19, Tailwind CSS, Lucide React, Framer Motion, Sonner
 - **Database:** PostgreSQL
 - **ORM:** Prisma
-- **Auth:** Custom JWT authentication, bcrypt password hashing, OTP verification
+- **Auth:** JWT, bcrypt password hashing, OTP verification
 - **Email:** Brevo SMTP API
-- **Validation:** Zod
 - **PDF Export:** html2pdf.js
+- **Validation:** Zod
 - **Language:** TypeScript
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 20 or newer recommended
+- Node.js 20 or newer
 - npm
 - PostgreSQL database
 - Brevo account/API key for production email sending
+- (Optional) Gemini API key for AI-powered enhancements
 
 ### Installation
 
@@ -58,38 +62,44 @@ JWT_SECRET="your-long-random-secret-at-least-24-characters"
 BREVO_API_KEY="your-brevo-api-key"
 BREVO_SENDER_EMAIL="your-verified-sender@example.com"
 BREVO_SENDER_NAME="DraftCareer"
+NEXT_PUBLIC_SITE_URL="https://your-deployment-url.com"
+GEMINI_API_KEY="your-gemini-api-key"
+GEMINI_MODEL="gemini-2.5-flash"
 ```
 
 Notes:
 
 - `DATABASE_URL` is required by Prisma.
-- `JWT_SECRET` must be at least 24 characters.
-- Brevo variables are needed for production OTP emails. In development, OTP codes are logged to the console when Brevo is not configured.
-- Users default to the `user` role. Set your own `users.role` value to `admin` directly in the database to manage donation settings from `/account`.
+- `JWT_SECRET` is required for authentication and should be long and random.
+- `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, and `BREVO_SENDER_NAME` are used for OTP email delivery.
+- In development, OTP codes are logged to the console when Brevo is not configured.
+- `NEXT_PUBLIC_SITE_URL` is used for the public site URL in robots and sitemap generation.
+- `GEMINI_API_KEY` and `GEMINI_MODEL` are optional and enable AI enhancement flows.
+- Users default to the `user` role. Update `users.role` to `admin` directly in the database for admin access.
 
 ### Admin and Donation Settings
 
-The `/donation` donation page is controlled from the database. After migrations run, every account has `users.role = 'user'` by default. To make your account an admin, update your user row directly:
+The `/donation` page is governed by database-controlled settings. By default, users are created with `role = 'user'`. To grant admin access:
 
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
 ```
 
-Admin users can open `/account` to manage:
+Admin users can manage:
 
-- Show or hide the `/donation` page
-- UPI ID
-- Show or hide only the QR code
+- Donation page visibility
+- UPI ID and donation instructions
+- QR-only donation display
 
 ### Public Resume Links
 
-Saved resumes can be made public from the builder. When public sharing is enabled, the app creates a random link like:
+Resumes can be made public from the builder. Public sharing generates a link like:
 
 ```text
 /share/9f1a2b3c4d5e6f70
 ```
 
-Turning sharing off keeps the slug reserved but shows a private/unavailable page to visitors.
+If sharing is disabled, the slug remains reserved and visitors see a private/unavailable page.
 
 ### Database Setup
 
@@ -111,7 +121,7 @@ npm run prisma:migrate
 npm run dev
 ```
 
-The app will start on the default Next.js development port, usually `http://localhost:3000`.
+Open the app at `http://localhost:3000` by default.
 
 ### Production Build
 
@@ -125,30 +135,30 @@ npm run start
 ```text
 app/                 Next.js routes, pages, layouts, and API handlers
 components/          Reusable UI and feature components
-lib/                 Auth, email, Prisma, validation, and utility helpers
+lib/                 Auth, email, Prisma, validation, and helper logic
 prisma/              Database schema and migrations
-templates/           Resume templates, themes, and preview rendering
-types/               Shared TypeScript types
-utils/               Resume data transformation helpers
+templates/           Resume template rendering and preview code
+types/               Shared TypeScript type declarations
+utils/               Resume data transformation utilities
 ```
 
 ## Core Workflows
 
 ### Authentication
 
-Users can create an account, verify their email with an OTP, log in, reset their password, and maintain a session through secure cookies.
+Users sign up, verify email with OTP, log in, reset passwords, and keep sessions with secure cookies.
 
 ### Resume Builder
 
-The builder stores resume data in structured sections, making it easier to edit individual parts of a resume while keeping the preview and saved database format consistent.
+Resume data is stored in modular sections, making it easy to update details, switch templates, and maintain a live preview.
 
 ### Templates and Export
 
-Users can choose a template/theme, preview the result, save changes, and export the resume as a PDF.
+Users can choose from resume templates, adjust presentation settings, and export a PDF from the browser.
 
 ## Deployment Notes
 
-This project can be deployed on platforms that support Next.js and PostgreSQL, such as Vercel plus a managed Postgres provider. Before deploying, configure all required environment variables and run Prisma migrations against the production database.
+Deploy on any platform that supports Next.js and PostgreSQL, such as Vercel with a managed Postgres provider. Set the required environment variables and run Prisma migrations in the production database.
 
 ## Repository
 
