@@ -22,7 +22,7 @@ import type { ResumeShareInfo } from "@/lib/resume-share";
 const skillSuggestions = ["React", "JavaScript", "React-Native", "Next.js", "TypeScript", "Node.js", "Basic HTML", "Angular", "PostgreSQL", "MySQL", "MongoDB", "Prisma", "Docker", "AWS", "Git"];
 const requiredPersonalFields = ["fullName", "email", "phone", "location"] as const;
 const resumeEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const resumePhonePattern = /^\d{10}$/;
+const resumePhonePattern = /^(?:\+91)?[6-9]\d{9}$/;
 const draftKey = "resume-builder-draft";
 const textColorOptions: Array<{ key: ResumeTextColorKey; label: string; defaultColor: string }> = [
   { key: "name", label: "Name", defaultColor: "#111827" },
@@ -171,7 +171,7 @@ export function ResumeBuilder({
       errors.email = "Enter a valid email address.";
     }
     if (phone && !resumePhonePattern.test(phone)) {
-      errors.phone = "Phone number must be exactly 10 digits.";
+      errors.phone = "Enter a valid 10-digit phone number, optionally with +91.";
     }
 
     return errors;
@@ -1076,13 +1076,13 @@ export function ResumeBuilder({
                 return (
                   <Input
                     className={missing || invalid ? "border-amber-300 bg-amber-50/60" : undefined}
-                    inputMode={key === "phone" ? "numeric" : undefined}
+                    inputMode={key === "phone" ? "tel" : undefined}
                     key={key}
-                    maxLength={key === "phone" ? 10 : undefined}
+                    maxLength={key === "phone" ? 13 : undefined}
                     placeholder={key.replace(/([A-Z])/g, " $1")}
                     type={key === "email" ? "email" : key === "phone" ? "tel" : "text"}
                     value={data.personal[key]}
-                    onChange={(event) => setData({ ...data, personal: { ...data.personal, [key]: key === "phone" ? event.target.value.replace(/\D/g, "").slice(0, 10) : event.target.value } })}
+                    onChange={(event) => setData({ ...data, personal: { ...data.personal, [key]: key === "phone" ? formatPhoneInput(event.target.value) : event.target.value } })}
                   />
                 );
               })}
@@ -1674,6 +1674,14 @@ function formatPersonalField(field: typeof requiredPersonalFields[number]) {
   return field.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
 }
 
+function formatPhoneInput(value: string) {
+  const trimmed = value.trim();
+  if (trimmed.startsWith("+")) {
+    return `+${trimmed.slice(1).replace(/\D/g, "").slice(0, 12)}`;
+  }
+  return trimmed.replace(/\D/g, "").slice(0, 10);
+}
+
 function isEducationScoreInvalid(item: ResumeData["education"][number]) {
   const value = item.cgpa.trim();
   if (!value) return false;
@@ -1822,7 +1830,7 @@ function AiDiffModal({
       onMouseDown={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-surface text-surface-foreground shadow-soft"
+        className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-surface text-foreground shadow-soft"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1850,7 +1858,7 @@ function AiDiffModal({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/35 p-3 sm:p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/35 p-3 dark:bg-background/60 sm:p-5">
           {groups.length === 0 ? (
             <div className="grid min-h-56 place-items-center rounded-lg border border-dashed border-border text-center">
               <div>
@@ -1861,22 +1869,22 @@ function AiDiffModal({
             </div>
           ) : (
             <div className="grid gap-4 xl:grid-cols-2">
-              <div className="overflow-hidden rounded-lg border border-border bg-slate-100 dark:bg-slate-900">
+              <div className="overflow-hidden rounded-lg border border-border bg-muted/50 dark:bg-surface">
                 <div className="flex items-center justify-between border-b border-border bg-surface px-3 py-2">
-                  <span className="text-xs font-black uppercase text-red-600">Before enhancement</span>
+                  <span className="text-xs font-black uppercase text-red-600 dark:text-red-300">Before enhancement</span>
                   <span className="text-xs text-muted-foreground">Removed text is red</span>
                 </div>
-                <div className="overflow-auto p-4">
-                  <ResumePreview data={history.before} zoom={0.62} compact appearance="light" fitContent diff={{ side: "before", otherData: history.after }} />
+                <div className="overflow-auto bg-muted/30 p-4 dark:bg-background/70">
+                  <ResumePreview data={history.before} zoom={0.62} compact fitContent diff={{ side: "before", otherData: history.after }} />
                 </div>
               </div>
-              <div className="overflow-hidden rounded-lg border border-border bg-slate-100 dark:bg-slate-900">
+              <div className="overflow-hidden rounded-lg border border-border bg-muted/50 dark:bg-surface">
                 <div className="flex items-center justify-between border-b border-border bg-surface px-3 py-2">
-                  <span className="text-xs font-black uppercase text-emerald-600">After enhancement</span>
+                  <span className="text-xs font-black uppercase text-emerald-600 dark:text-emerald-300">After enhancement</span>
                   <span className="text-xs text-muted-foreground">Added text is green</span>
                 </div>
-                <div className="overflow-auto p-4">
-                  <ResumePreview data={history.after} zoom={0.62} compact appearance="light" fitContent diff={{ side: "after", otherData: history.before }} />
+                <div className="overflow-auto bg-muted/30 p-4 dark:bg-background/70">
+                  <ResumePreview data={history.after} zoom={0.62} compact fitContent diff={{ side: "after", otherData: history.before }} />
                 </div>
               </div>
             </div>
