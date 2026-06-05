@@ -4,16 +4,18 @@ import { prisma } from "@/lib/prisma";
 export type ResumeShareInfo = {
   isPublic: boolean;
   shareSlug: string | null;
+  viewCount: number;
 };
 
 type ShareRow = {
   is_public: boolean;
   share_slug: string | null;
+  view_count: number;
 };
 
 export async function getResumeShareInfo(resumeId: string): Promise<ResumeShareInfo> {
   const rows = await prisma.$queryRaw<ShareRow[]>`
-    SELECT is_public, share_slug
+    SELECT is_public, share_slug, view_count
     FROM resumes
     WHERE id = ${resumeId}
     LIMIT 1
@@ -31,7 +33,7 @@ export async function setResumePublicState({
   isPublic: boolean;
 }) {
   const existingRows = await prisma.$queryRaw<Array<ShareRow & { id: string }>>`
-    SELECT id, is_public, share_slug
+    SELECT id, is_public, share_slug, view_count
     FROM resumes
     WHERE id = ${resumeId} AND user_id = ${userId}
     LIMIT 1
@@ -44,7 +46,7 @@ export async function setResumePublicState({
     UPDATE resumes
     SET is_public = ${isPublic}, share_slug = ${shareSlug}, updated_at = CURRENT_TIMESTAMP
     WHERE id = ${resumeId} AND user_id = ${userId}
-    RETURNING is_public, share_slug
+    RETURNING is_public, share_slug, view_count
   `;
 
   return toShareInfo(rows[0]);
@@ -64,6 +66,7 @@ async function createUniqueSlug() {
 function toShareInfo(row?: ShareRow): ResumeShareInfo {
   return {
     isPublic: row?.is_public ?? false,
-    shareSlug: row?.share_slug ?? null
+    shareSlug: row?.share_slug ?? null,
+    viewCount: row?.view_count ?? 0
   };
 }

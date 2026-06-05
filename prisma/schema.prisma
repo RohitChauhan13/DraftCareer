@@ -51,14 +51,30 @@ model Resume {
   isPinned   Boolean         @default(false) @map("is_pinned")
   isPublic   Boolean         @default(false) @map("is_public")
   shareSlug  String?         @unique @map("share_slug")
+  viewCount  Int             @default(0) @map("view_count")
   createdAt  DateTime        @default(now()) @map("created_at")
   updatedAt  DateTime        @updatedAt @map("updated_at")
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   sections   ResumeSection[]
+  views      ResumeView[]
 
   @@index([userId])
   @@index([userId, isPinned, updatedAt])
   @@map("resumes")
+}
+
+model ResumeView {
+  id            String   @id @default(cuid())
+  resumeId      String   @map("resume_id")
+  viewerKey     String   @map("viewer_key")
+  visitCount    Int      @default(1) @map("visit_count")
+  firstViewedAt DateTime @default(now()) @map("first_viewed_at")
+  lastViewedAt  DateTime @updatedAt @map("last_viewed_at")
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, viewerKey])
+  @@index([resumeId])
+  @@map("resume_views")
 }
 
 model ResumeSection {

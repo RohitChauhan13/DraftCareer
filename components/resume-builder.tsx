@@ -84,7 +84,7 @@ export function ResumeBuilder({
   const [visibilityOpen, setVisibilityOpen] = useState(false);
   const [zoom, setZoom] = useState(0.78);
   const [draggingSkill, setDraggingSkill] = useState<string | null>(null);
-  const [share, setShare] = useState<ResumeShareInfo>(initialShare ?? { isPublic: false, shareSlug: null });
+  const [share, setShare] = useState<ResumeShareInfo>(initialShare ?? { isPublic: false, shareSlug: null, viewCount: 0 });
   const [sharing, setSharing] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
   const [cropOriginalImage, setCropOriginalImage] = useState<string | null>(null);
@@ -552,6 +552,11 @@ async function downloadPdf() {
                           {share.isPublic ? "Public" : "Private"}
                         </span>
                       </div>
+                      {share.isPublic && (
+                        <div className="border-b border-border px-3 py-2 text-xs text-muted-foreground">
+                          Views: {share.viewCount}
+                        </div>
+                      )}
                       <button
                         className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm font-medium transition hover:bg-muted"
                         disabled={sharing}

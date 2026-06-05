@@ -29,6 +29,8 @@ export default async function DashboardPage() {
         title: true,
         templateId: true,
         isPinned: true,
+        isPublic: true,
+        viewCount: true,
         updatedAt: true
       },
       orderBy: [
@@ -103,6 +105,9 @@ export default async function DashboardPage() {
                   <div>
                     <NavActionLink href={`/builder/${resume.id}`}>Edit resume</NavActionLink>
                     <p className="mt-4 text-xs text-muted-foreground">Last Updated: {formatDate(resume.updatedAt)}</p>
+                    {resume.isPublic && (
+                      <p className="mt-1 text-xs text-muted-foreground">Views: {resume.viewCount}</p>
+                    )}
                   </div>
                   <div className="hidden h-14 w-14 place-items-center rounded-md bg-primary/10 text-primary sm:grid">
                     <FileText size={24} />
