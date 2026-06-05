@@ -16,6 +16,7 @@ type ConfirmDialogProps = {
   variant?: "danger" | "primary";
   onConfirm: () => void;
   onCancel: () => void;
+  onDismiss?: () => void;
 };
 
 export function ConfirmDialog({
@@ -28,7 +29,8 @@ export function ConfirmDialog({
   size = "md",
   variant = "primary",
   onConfirm,
-  onCancel
+  onCancel,
+  onDismiss = onCancel
 }: ConfirmDialogProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -49,7 +51,7 @@ export function ConfirmDialog({
             </div>
             <h2 className="min-w-0 text-lg font-semibold" id="confirm-title">{title}</h2>
           </div>
-            <button className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted" type="button" onClick={onCancel} aria-label="Close dialog">
+            <button className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted" type="button" onClick={onDismiss} aria-label="Close dialog">
               <X size={16} />
             </button>
           </div>

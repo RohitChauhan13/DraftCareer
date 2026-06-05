@@ -64,7 +64,9 @@ BREVO_SENDER_EMAIL="your-verified-sender@example.com"
 BREVO_SENDER_NAME="DraftCareer"
 NEXT_PUBLIC_SITE_URL="https://your-deployment-url.com"
 GEMINI_API_KEY="your-gemini-api-key"
-GEMINI_MODEL="gemini-2.5-flash"
+GEMINI_MODELS="gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
+OPEN_ROUTER_API_KEY="your-open-router-api-key"
+OPEN_ROUTER_MODELS="openrouter/auto"
 ```
 
 Notes:
@@ -74,7 +76,8 @@ Notes:
 - `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, and `BREVO_SENDER_NAME` are used for OTP email delivery.
 - In development, OTP codes are logged to the console when Brevo is not configured.
 - `NEXT_PUBLIC_SITE_URL` is used for the public site URL in robots and sitemap generation.
-- `GEMINI_API_KEY` and `GEMINI_MODEL` are optional and enable AI enhancement flows.
+- `GEMINI_API_KEY` / `GEMINI_MODELS` and `OPEN_ROUTER_API_KEY` / `OPEN_ROUTER_MODELS` are optional and enable AI enhancement flows. Model lists are comma-separated fallbacks; `GEMINI_MODEL` still works for a single-model setup.
+- When both providers are configured, OpenRouter is tried first, then Gemini.
 - Users default to the `user` role. Update `users.role` to `admin` directly in the database for admin access.
 
 ### Admin and Donation Settings

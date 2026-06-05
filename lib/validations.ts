@@ -171,7 +171,8 @@ export const resumeDataSchema = z.object({
 
 export const resumeEnhanceSchema = z.object({
   resume: resumeDataSchema,
-  jobRequirement: z.string().trim().max(2000, "Job requirement must be 2000 characters or less.").optional()
+  jobRequirement: z.string().trim().max(2000, "Job requirement must be 2000 characters or less.").optional(),
+  modelIndex: z.number().int().min(0).max(9).optional()
 });
 
 export const aiEnhanceSettingsSchema = z.object({

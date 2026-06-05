@@ -46,6 +46,7 @@ type AiEnhanceHistory = {
   after: ResumeData;
   state: "applied" | "undone";
 } | null;
+type FinalizeAction = "save" | "download";
 
 export function ResumeBuilder({
   initialData,
@@ -70,7 +71,10 @@ export function ResumeBuilder({
   const [saving, setSaving] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
   const [enhancementStage, setEnhancementStage] = useState(0);
+  const [enhancementModelStatus, setEnhancementModelStatus] = useState("Using Model 1");
   const [confirmEnhance, setConfirmEnhance] = useState(false);
+  const [confirmAiPolish, setConfirmAiPolish] = useState<FinalizeAction | null>(null);
+  const [aiPolishPromptDismissed, setAiPolishPromptDismissed] = useState(false);
   const [enhancementError, setEnhancementError] = useState<string | null>(null);
   const [dailyLimitOpen, setDailyLimitOpen] = useState(false);
   const [targetJobEnabled, setTargetJobEnabled] = useState(false);
@@ -188,8 +192,24 @@ export function ResumeBuilder({
     });
   }
 
-  async function save() {
+  function shouldSuggestAiPolish() {
+    if (aiPolishPromptDismissed) return false;
+    if (aiEnhanceHistory?.state === "applied") return false;
+    if (aiEnhanceUsage?.blocked) return false;
+    if (typeof aiEnhanceUsage?.remaining === "number" && aiEnhanceUsage.remaining <= 0) return false;
+    return progress >= 45;
+  }
+
+  function requestSave() {
     if (!validateResumeDetails()) return;
+    if (shouldSuggestAiPolish()) {
+      setConfirmAiPolish("save");
+      return;
+    }
+    void save();
+  }
+
+  async function save() {
     setSaving(true);
     try {
       const result = await persistResume();
@@ -248,10 +268,30 @@ export function ResumeBuilder({
   function requestPdfDownload() {
     if (!resumeId || exporting) return;
     if (!validateResumeDetails()) return;
+    if (shouldSuggestAiPolish()) {
+      setConfirmAiPolish("download");
+      return;
+    }
     setConfirmDownload(true);
   }
 
-async function downloadPdf() {
+  function continueWithoutAiPolish() {
+    const action = confirmAiPolish;
+    setAiPolishPromptDismissed(true);
+    setConfirmAiPolish(null);
+    if (action === "save") {
+      void save();
+      return;
+    }
+    if (action === "download") setConfirmDownload(true);
+  }
+
+  function polishBeforeFinalize() {
+    setConfirmAiPolish(null);
+    requestAiEnhancement();
+  }
+
+  async function downloadPdf() {
     if (!resumeId || exporting) return;
     setExporting(true);
     try {
@@ -332,28 +372,52 @@ async function downloadPdf() {
     setEnhancing(true);
     setEnhancementError(null);
     setEnhancementStage(0);
+    setEnhancementModelStatus("Using Model 1");
     try {
       await waitForStage();
       setEnhancementStage(1);
-      const response = await fetch("/api/resumes/enhance", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          resume: data,
-          jobRequirement: targetJobEnabled ? targetJobRequirement.trim() || undefined : undefined
-        })
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error);
+      let modelIndex = 0;
+      let result: {
+        resume: ResumeData;
+        usage?: AiEnhanceUsage;
+      } | null = null;
+
+      while (!result) {
+        setEnhancementModelStatus(`Using Model ${modelIndex + 1}`);
+        const response = await fetch("/api/resumes/enhance", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            resume: data,
+            jobRequirement: targetJobEnabled ? targetJobRequirement.trim() || undefined : undefined,
+            modelIndex
+          })
+        });
+        const responseResult = await response.json();
+        if (response.ok) {
+          result = responseResult;
+          break;
+        }
+        if (responseResult.retryable && typeof responseResult.nextModelIndex === "number") {
+          setEnhancementModelStatus(responseResult.error ?? `Model ${modelIndex + 1} is handling heavy traffic. Trying Model ${responseResult.nextModelIndex + 1}.`);
+          await waitForStage();
+          modelIndex = responseResult.nextModelIndex;
+          continue;
+        }
+        throw new Error(responseResult.error);
+      }
+
+      if (!result) throw new Error("AI enhancement failed. Please try again.");
+      const enhancedResult = result;
       setEnhancementStage(2);
       await waitForStage();
       setEnhancementStage(3);
       await waitForStage();
-      setAiEnhanceHistory({ before: data, after: result.resume, state: "applied" });
-      setData(result.resume);
+      setAiEnhanceHistory({ before: data, after: enhancedResult.resume, state: "applied" });
+      setData(enhancedResult.resume);
       setAiDiffOpen(true);
-      if (result.usage) setAiEnhanceUsage(result.usage);
-      toast.success(typeof result.usage?.remaining === "number" ? `Enhanced for ATS. ${result.usage.remaining} chances left today.` : "Enhanced for ATS");
+      if (enhancedResult.usage) setAiEnhanceUsage(enhancedResult.usage);
+      toast.success(typeof enhancedResult.usage?.remaining === "number" ? `Enhanced for ATS. ${enhancedResult.usage.remaining} chances left today.` : "Enhanced for ATS");
     } catch (error) {
       const message = error instanceof Error ? error.message : "AI enhancement failed. Please try again.";
       if (message.toLowerCase().includes("chances for today")) {
@@ -364,6 +428,7 @@ async function downloadPdf() {
     } finally {
       setEnhancing(false);
       setEnhancementStage(0);
+      setEnhancementModelStatus("Using Model 1");
       setConfirmEnhance(false);
     }
   }
@@ -529,7 +594,7 @@ async function downloadPdf() {
                 </Button>
               </div>
             )}
-            <Button variant="secondary" onClick={save} loading={saving} loadingText="Saving"><Save size={16} /> Save</Button>
+            <Button variant="secondary" onClick={requestSave} loading={saving} loadingText="Saving"><Save size={16} /> Save</Button>
             {resumeId && (
               <>
                 <div className="relative">
@@ -589,7 +654,7 @@ async function downloadPdf() {
       {(saving || exporting || enhancing) && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 px-4 backdrop-blur-sm">
           {enhancing ? (
-            <EnhancementStageLoader currentStage={enhancementStage} />
+            <EnhancementStageLoader currentStage={enhancementStage} modelStatus={enhancementModelStatus} />
           ) : (
             <WordLoader
               label={saving ? "Saving" : "Preparing"}
@@ -610,6 +675,17 @@ async function downloadPdf() {
           if (!exporting) setConfirmDownload(false);
         }}
         onConfirm={downloadPdf}
+      />
+
+      <ConfirmDialog
+        cancelLabel={confirmAiPolish === "save" ? "Save anyway" : "Generate PDF anyway"}
+        confirmLabel={<><Sparkles size={16} /> Polish with AI</>}
+        description={<AiPolishNudgeContent action={confirmAiPolish} />}
+        open={confirmAiPolish !== null}
+        title="One last polish?"
+        onCancel={continueWithoutAiPolish}
+        onConfirm={polishBeforeFinalize}
+        onDismiss={() => setConfirmAiPolish(null)}
       />
 
       <ConfirmDialog
@@ -1217,7 +1293,7 @@ function fitPdfPreviewToFullPages(root: HTMLElement) {
   };
 }
 
-function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
+function EnhancementStageLoader({ currentStage, modelStatus }: { currentStage: number; modelStatus: string }) {
   const keywords = ["keywords", "impact", "clarity", "ATS"];
 
   return (
@@ -1246,6 +1322,7 @@ function EnhancementStageLoader({ currentStage }: { currentStage: number }) {
           <div className="min-w-0">
             <p className="text-lg font-black">Enhancing for ATS</p>
             <p className="text-sm font-medium text-muted-foreground">{enhancementStages[currentStage]}</p>
+            <p className="mt-1 text-xs font-bold text-primary">{modelStatus}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {keywords.map((keyword, index) => (
                 <motion.span
@@ -1607,6 +1684,21 @@ function isEducationScoreInvalid(item: ResumeData["education"][number]) {
     : score < 1 || score > 10;
 }
 
+function AiPolishNudgeContent({ action }: { action: FinalizeAction | null }) {
+  const actionLabel = action === "download" ? "generating the PDF" : "saving";
+
+  return (
+    <div className="space-y-3">
+      <p>
+        Before {actionLabel}, AI can improve wording, grammar, and impact while keeping your original details.
+      </p>
+      <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-900">
+        You can review the changes, undo them, or continue without AI.
+      </div>
+    </div>
+  );
+}
+
 function getEnhanceConfirmDescription({
   enabled,
   jobRequirement,
@@ -1917,9 +2009,9 @@ function diffLines(before: string[], after: string[]): DiffRow[] {
 function EnhanceErrorContent({ message }: { message: string | null }) {
   return (
     <div className="space-y-3">
-      <p>Our AI modal could not enhance the resume right now.</p>
+      <p>Our AI model could not enhance the resume right now.</p>
       {message && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800">
+        <div className="break-words rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800">
           {message}
         </div>
       )}
