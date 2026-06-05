@@ -44,7 +44,7 @@ DraftCareer strikes a balance between guided structure and visual flexibility. U
 - npm
 - PostgreSQL database
 - Brevo account/API key for production email sending
-- (Optional) Gemini API key for AI-powered enhancements
+- (Optional) Groq API key for AI-powered enhancements
 
 ### Installation
 
@@ -63,10 +63,8 @@ BREVO_API_KEY="your-brevo-api-key"
 BREVO_SENDER_EMAIL="your-verified-sender@example.com"
 BREVO_SENDER_NAME="DraftCareer"
 NEXT_PUBLIC_SITE_URL="https://your-deployment-url.com"
-GEMINI_API_KEY="your-gemini-api-key"
-GEMINI_MODELS="gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
-OPEN_ROUTER_API_KEY="your-open-router-api-key"
-OPEN_ROUTER_MODELS="openrouter/auto"
+GROQ_API_KEY="your-groq-api-key"
+GROQ_MODELS="qwen/qwen3-32b,llama-3.3-70b-versatile,meta-llama/llama-4-scout-17b-16e-instruct,groq/compound-mini,groq/compound"
 ```
 
 Notes:
@@ -76,8 +74,7 @@ Notes:
 - `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, and `BREVO_SENDER_NAME` are used for OTP email delivery.
 - In development, OTP codes are logged to the console when Brevo is not configured.
 - `NEXT_PUBLIC_SITE_URL` is used for the public site URL in robots and sitemap generation.
-- `GEMINI_API_KEY` / `GEMINI_MODELS` and `OPEN_ROUTER_API_KEY` / `OPEN_ROUTER_MODELS` are optional and enable AI enhancement flows. Model lists are comma-separated fallbacks; `GEMINI_MODEL` still works for a single-model setup.
-- When both providers are configured, OpenRouter is tried first, then Gemini.
+- `GROQ_API_KEY` and `GROQ_MODELS` are optional and enable AI enhancement flows. `GROQ_MODELS` is a comma-separated fallback pool; the app estimates request size and starts with a suitable model before falling back.
 - Users default to the `user` role. Update `users.role` to `admin` directly in the database for admin access.
 
 ### Admin and Donation Settings

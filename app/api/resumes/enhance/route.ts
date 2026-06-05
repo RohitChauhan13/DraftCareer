@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { errorResponse, ok } from "@/lib/api";
 import { getSessionUserId } from "@/lib/auth";
 import { getAiEnhanceDateKey, getAiEnhanceSettings, getUserAiEnhanceUsage } from "@/lib/ai-enhance";
-import { enhanceResumeWithGemini, enhanceResumeWithGeminiModelIndex, getGeminiModelCount, isRetryableGeminiError } from "@/lib/gemini";
+import { enhanceResumeWithGroq, enhanceResumeWithGroqModelIndex, getGroqEnhanceErrorMessage, getGroqModelCount, isRetryableGroqError } from "@/lib/groq";
 import { prisma } from "@/lib/prisma";
 import { resumeEnhanceSchema } from "@/lib/validations";
 
@@ -18,19 +18,22 @@ export async function POST(request: NextRequest) {
     let resume;
     try {
       resume = typeof payload.modelIndex === "number"
-        ? await enhanceResumeWithGeminiModelIndex(payload.resume, payload.modelIndex, payload.jobRequirement)
-        : await enhanceResumeWithGemini(payload.resume, payload.jobRequirement);
+        ? await enhanceResumeWithGroqModelIndex(payload.resume, payload.modelIndex, payload.jobRequirement)
+        : await enhanceResumeWithGroq(payload.resume, payload.jobRequirement);
     } catch (error) {
-      if (typeof payload.modelIndex === "number" && error instanceof Error && isRetryableGeminiError(error)) {
+      if (typeof payload.modelIndex === "number" && error instanceof Error && isRetryableGroqError(error)) {
         const nextModelIndex = payload.modelIndex + 1;
-        if (nextModelIndex < getGeminiModelCount()) {
+        if (nextModelIndex < getGroqModelCount()) {
           return ok({
-            error: `Model ${payload.modelIndex + 1} could not improve the resume. Trying Model ${nextModelIndex + 1}.`,
+            error: `AI option ${payload.modelIndex + 1} is busy. Trying option ${nextModelIndex + 1}.`,
             retryable: true,
             nextModelIndex
           }, { status: 503 });
         }
-        return errorResponse(new Error("AI could not produce useful resume improvements right now. Please try again later."), 429);
+        return errorResponse(new Error(getGroqEnhanceErrorMessage(error)), 429);
+      }
+      if (error instanceof Error) {
+        return errorResponse(new Error(getGroqEnhanceErrorMessage(error)), 400);
       }
       throw error;
     }

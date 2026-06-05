@@ -71,7 +71,7 @@ export function ResumeBuilder({
   const [saving, setSaving] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
   const [enhancementStage, setEnhancementStage] = useState(0);
-  const [enhancementModelStatus, setEnhancementModelStatus] = useState("Using Model 1");
+  const [enhancementModelStatus, setEnhancementModelStatus] = useState("Using AI option 1");
   const [confirmEnhance, setConfirmEnhance] = useState(false);
   const [confirmAiPolish, setConfirmAiPolish] = useState<FinalizeAction | null>(null);
   const [aiPolishPromptDismissed, setAiPolishPromptDismissed] = useState(false);
@@ -372,7 +372,7 @@ export function ResumeBuilder({
     setEnhancing(true);
     setEnhancementError(null);
     setEnhancementStage(0);
-    setEnhancementModelStatus("Using Model 1");
+    setEnhancementModelStatus("Using AI option 1");
     try {
       await waitForStage();
       setEnhancementStage(1);
@@ -383,7 +383,7 @@ export function ResumeBuilder({
       } | null = null;
 
       while (!result) {
-        setEnhancementModelStatus(`Using Model ${modelIndex + 1}`);
+        setEnhancementModelStatus(`Using AI option ${modelIndex + 1}`);
         const response = await fetch("/api/resumes/enhance", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -399,7 +399,7 @@ export function ResumeBuilder({
           break;
         }
         if (responseResult.retryable && typeof responseResult.nextModelIndex === "number") {
-          setEnhancementModelStatus(responseResult.error ?? `Model ${modelIndex + 1} is handling heavy traffic. Trying Model ${responseResult.nextModelIndex + 1}.`);
+          setEnhancementModelStatus(responseResult.error ?? `AI option ${modelIndex + 1} is busy. Trying option ${responseResult.nextModelIndex + 1}.`);
           await waitForStage();
           modelIndex = responseResult.nextModelIndex;
           continue;
@@ -428,7 +428,7 @@ export function ResumeBuilder({
     } finally {
       setEnhancing(false);
       setEnhancementStage(0);
-      setEnhancementModelStatus("Using Model 1");
+      setEnhancementModelStatus("Using AI option 1");
       setConfirmEnhance(false);
     }
   }
